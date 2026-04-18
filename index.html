@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="color-scheme" content="light only">
+<title>MenuSemanal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&family=Karla:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --cream: #FAF7F2;
+  --brown: #2C2416;
+  --brown-mid: #6B5B45;
+  --terra: #C5593A;
+  --terra-light: #F0C5B8;
+  --olive: #7A8C5E;
+  --olive-light: #D4DCC6;
+  --sand: #E8E0D0;
+  --white: #FFFFFF;
+  --shadow: 0 2px 12px rgba(44,36,22,0.08);
+  --r: 14px; --rs: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #FAF7F2 !important; color: #2C2416 !important;
+  font-family: 'Karla', sans-serif; font-size: 15px; -webkit-font-smoothing: antialiased; }
+
+/* ── LAYOUT ── */
+#app { display: flex; flex-direction: column; height: 100dvh; background: #FAF7F2; }
+#header { background: #FFFFFF !important; border-bottom: 1.5px solid #E8E0D0; padding: 14px 20px 0; flex-shrink: 0; }
+#header h1 { font-family:'Fraunces',serif; font-size: 22px; font-weight: 700; color: #C5593A !important;
+  letter-spacing: -0.5px; margin-bottom: 12px; }
+#header h1 span { color: #2C2416 !important; }
+#nav { display: flex; gap: 2px; }
+.nav-btn { flex: 1; border: none; background: #FFFFFF; padding: 9px 4px;
+  font-family:'Karla',sans-serif; font-size: 11.5px; font-weight: 600; color: #6B5B45 !important;
+  cursor: pointer; border-bottom: 2.5px solid transparent; transition: all .2s; letter-spacing: 0.1px; }
+.nav-btn.active { color: #C5593A !important; border-bottom-color: #C5593A; }
+.nav-btn .ni { font-size: 16px; display: block; margin-bottom: 2px; }
+
+#content { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
+.section { display: none; animation: fadeIn .22s ease; }
+.section.active { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
+
+/* ── CARDS ── */
+.card { background: var(--white); border-radius: var(--r); box-shadow: var(--shadow); padding: 16px; margin-bottom: 12px; }
+
+/* ── BUTTONS ── */
+.btn { display:inline-flex; align-items:center; gap:6px; border:none; border-radius:var(--rs);
+  padding:10px 16px; font-family:'Karla',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; }
+.btn-primary { background:var(--terra); color:white; }
+.btn-primary:active { background:#a8462a; }
+.btn-olive { background:var(--olive); color:white; }
+.btn-outline { background:transparent; color:var(--brown-mid); border:1.5px solid var(--sand); }
+.btn-outline:active { background:var(--sand); }
+.btn-sm { padding:6px 10px; font-size:13px; border-radius:6px; }
+.btn-full { width:100%; justify-content:center; margin-top:8px; }
+.btn-icon { background:none; border:none; cursor:pointer; font-size:17px; padding:4px; }
+
+/* ── INPUTS ── */
+input[type=text], textarea, select {
+  width:100%; border:1.5px solid var(--sand); border-radius:var(--rs);
+  padding:10px 12px; font-family:'Karla',sans-serif; font-size:14px;
+  color:var(--brown); background:var(--cream); outline:none; transition:border-color .2s; appearance:none;
+}
+input[type=text]:focus, textarea:focus, select:focus { border-color:var(--terra); background:var(--white); }
+textarea { resize:vertical; min-height:80px; }
+.field { margin-bottom:12px; }
+.field label { display:block; font-size:11px; font-weight:700; color:var(--brown-mid);
+  margin-bottom:5px; letter-spacing:0.5px; text-transform:uppercase; }
+select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B5B45' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; }
+
+/* ── FILTER CHIPS ── */
+.chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+.chip { border:1.5px solid var(--sand); background:var(--white); color:var(--brown-mid);
+  font-family:'Karla',sans-serif; font-size:12px; font-weight:600;
+  padding:5px 11px; border-radius:20px; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.chip.active { background:var(--terra); border-color:var(--terra); color:white; }
+
+/* ── WEEK NAV ── */
+.week-config { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;
+  font-size:12px; color:var(--brown-mid); font-weight:600; }
+.week-config select { width:auto; padding:5px 28px 5px 10px; font-size:12px; font-weight:600;
+  color:var(--terra); border-color:var(--terra-light); background:#FFF5F2; }
+.week-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.week-label { font-family:'Fraunces',serif; font-size:16px; font-weight:600; text-align:center; flex:1; }
+
+/* ── DAY CARDS ── */
+.day-card { background:#FFFFFF; border-radius:var(--r); box-shadow:var(--shadow); margin-bottom:10px; overflow:hidden; }
+.day-header { background:#F0EBE3; border-left:4px solid #6B5B45; padding:8px 14px; display:flex; align-items:center; justify-content:space-between; }
+.day-header.today { background:#FFF0EB; border-left-color:#C5593A; }
+.day-name { font-family:'Fraunces',serif; font-size:15px; font-weight:700; color:#2C2416; }
+.day-date { font-size:12px; color:#6B5B45; font-weight:500; }
+.day-meals { padding:10px 14px; background:#FFFFFF; }
+.meal-row { display:flex; align-items:center; gap:10px; padding:6px 0; }
+.meal-row+.meal-row { border-top:1px solid #E8E0D0; }
+.meal-label { font-size:12px; font-weight:700; color:#6B5B45; text-transform:uppercase; letter-spacing:.4px; min-width:52px; }
+.meal-select { flex:1; padding:7px 10px; font-size:13px; color:#2C2416; background:#FAF7F2; }
+.meal-clear { background:none; border:none; color:#6B5B45; font-size:18px; cursor:pointer; padding:2px 4px; opacity:.5; }
+.meal-clear:hover { color:#C5593A; opacity:1; }
+
+/* ── SHOPPING LIST ── */
+.shop-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.shop-header h2 { font-family:'Fraunces',serif; font-size:20px; color:#2C2416; font-weight:700; }
+.section-sep { font-size:11px; font-weight:700; letter-spacing:.8px; text-transform:uppercase;
+  padding:10px 0 6px; margin-bottom:2px; display:flex; align-items:center; gap:6px; }
+.section-sep::after { content:''; flex:1; height:1.5px; background:currentColor; opacity:.15; }
+.shop-group { background:var(--white); border-radius:var(--r); box-shadow:var(--shadow); margin-bottom:4px; overflow:hidden; }
+.shop-item { display:flex; align-items:center; gap:10px; padding:11px 14px;
+  border-bottom:1px solid var(--sand); background:var(--white); transition:opacity .2s; }
+.shop-item:last-child { border-bottom:none; }
+.shop-item.checked { opacity:.45; }
+.shop-item.checked .item-name { text-decoration:line-through; }
+.shop-check { width:24px; height:24px; border-radius:50%; border:2px solid var(--brown-mid);
+  background:none; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  transition:all .15s; font-size:13px; color:transparent; }
+.shop-item.checked .shop-check { background:var(--olive); border-color:var(--olive); color:white; }
+.item-name { flex:1; font-size:14px; color:var(--brown); }
+.item-src { font-size:12px; color:var(--brown-mid); margin-top:1px; }
+.item-del { background:none; border:none; color:var(--brown-mid); font-size:16px; cursor:pointer; padding:4px; opacity:.5; }
+.item-del:hover { opacity:1; color:var(--terra); }
+.add-manual { display:flex; gap:8px; margin-top:12px; }
+.add-manual input { flex:1; }
+
+/* ── RECIPE CARDS ── */
+.recipe-card { background:var(--white); border-radius:var(--r); box-shadow:var(--shadow);
+  padding:14px 16px; margin-bottom:10px; border-left:4px solid var(--terra); }
+.recipe-header { display:flex; align-items:flex-start; justify-content:space-between; }
+.recipe-name { font-family:'Fraunces',serif; font-size:16px; font-weight:600; }
+.recipe-actions { display:flex; gap:4px; flex-shrink:0; }
+.recipe-ings { margin-top:8px; font-size:13px; color:var(--brown-mid); display:none; }
+.recipe-ings.open { display:block; }
+.recipe-ings ul { list-style:none; margin-top:6px; column-count:2; column-gap:12px; }
+.recipe-ings ul li::before { content:'· '; color:var(--terra); font-weight:700; }
+.recipe-toggle { font-size:12px; color:var(--olive); font-weight:600; cursor:pointer; margin-top:4px; display:inline-block; }
+.tag { display:inline-block; font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; margin-right:4px; }
+
+/* ── INGREDIENT CATALOGUE ── */
+.ing-cat-block { margin-bottom:18px; }
+.ing-cat-title { font-family:'Fraunces',serif; font-size:15px; font-weight:600; margin-bottom:8px;
+  display:flex; align-items:center; gap:6px; }
+.ing-grid { display:flex; flex-wrap:wrap; gap:6px; }
+.ing-tag { display:inline-flex; align-items:center; gap:5px; padding:5px 10px;
+  border-radius:20px; font-size:13px; font-weight:500; border:1.5px solid transparent; }
+.ing-tag .del-ing { background:none; border:none; cursor:pointer; font-size:12px; opacity:.5; padding:0 0 0 2px; }
+.ing-tag .del-ing:hover { opacity:1; }
+
+/* ── INGREDIENT PICKER (in recipe modal) ── */
+.ing-search { margin-bottom:10px; }
+.ing-picker { max-height:220px; overflow-y:auto; border:1.5px solid var(--sand);
+  border-radius:var(--rs); background:var(--white); }
+.ing-picker-cat { padding:6px 12px 2px; font-size:10px; font-weight:700; letter-spacing:.6px;
+  text-transform:uppercase; color:var(--brown-mid); background:var(--cream); }
+.ing-option { display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--sand); cursor:pointer; }
+.ing-option:last-child { border-bottom:none; }
+.ing-option.selected { background:#FFF5F2; }
+.ing-option .ing-check { width:18px; height:18px; border-radius:4px; border:2px solid var(--sand);
+  display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
+.ing-option.selected .ing-check { background:var(--terra); border-color:var(--terra); color:white; }
+.selected-ings { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; min-height:28px; }
+.sel-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border-radius:20px;
+  font-size:12px; font-weight:600; cursor:pointer; }
+.sel-chip:hover { opacity:.8; }
+
+/* ── EMPTY ── */
+.empty { text-align:center; padding:36px 20px; color:var(--brown-mid); }
+.empty .ei { font-size:38px; margin-bottom:10px; }
+.empty p { font-size:14px; line-height:1.6; }
+
+/* ── MODAL ── */
+.modal-overlay { position:fixed; inset:0; background:rgba(44,36,22,.45);
+  display:none; align-items:flex-end; justify-content:center; z-index:1000; backdrop-filter:blur(3px); }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--white); border-radius:20px 20px 0 0; padding:20px 20px 36px;
+  width:100%; max-height:92dvh; overflow-y:auto; animation:slideUp .28s ease; }
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:none} }
+.modal-handle { width:36px; height:4px; background:var(--sand); border-radius:2px; margin:0 auto 16px; }
+.modal-title { font-family:'Fraunces',serif; font-size:20px; font-weight:700; margin-bottom:16px; }
+.modal-actions { display:flex; gap:8px; margin-top:16px; }
+.modal-actions .btn { flex:1; justify-content:center; }
+
+/* ── FAB ── */
+.fab { position:fixed; bottom:24px; right:20px; width:54px; height:54px; border-radius:50%;
+  background:var(--terra); color:white; border:none; font-size:26px; cursor:pointer;
+  box-shadow:0 4px 16px rgba(197,89,58,.4); display:flex; align-items:center; justify-content:center;
+  transition:transform .15s; z-index:100; }
+.fab:active { transform:scale(.93); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <h1 style="margin-bottom:0">🍽 <span>Menú</span>Semanal</h1>
+      <button onclick="openModal('modal-data')" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px;color:#6B5B45" title="Importar / Exportar">⚙️</button>
+    </div>
+    <nav id="nav">
+      <button class="nav-btn active" onclick="switchTab('menu')" id="tab-menu"><span class="ni">📅</span>Menú</button>
+      <button class="nav-btn" onclick="switchTab('lista')" id="tab-lista"><span class="ni">🛒</span>Compra</button>
+      <button class="nav-btn" onclick="switchTab('recetario')" id="tab-recetario"><span class="ni">📖</span>Recetas</button>
+      <button class="nav-btn" onclick="switchTab('ingredientes')" id="tab-ingredientes"><span class="ni">🥕</span>Ingredientes</button>
+    </nav>
+  </div>
+
+  <div id="content">
+
+    <!-- ── MENÚ SEMANAL ── -->
+    <div id="section-menu" class="section active">
+      <div class="week-config">
+        <span>Semana de</span>
+        <select id="start-day-select" onchange="changeStartDay(this.value)">
+          <option value="1">Lunes</option><option value="2">Martes</option>
+          <option value="3">Miércoles</option><option value="4">Jueves</option>
+          <option value="5">Viernes</option><option value="6" selected>Sábado</option>
+          <option value="0">Domingo</option>
+        </select>
+        <span>a</span>
+        <span id="end-day-label" style="color:var(--terra);font-weight:700"></span>
+      </div>
+      <div class="week-nav">
+        <button class="btn btn-outline btn-sm" onclick="changeWeek(-1)">← Anterior</button>
+        <div class="week-label" id="week-label"></div>
+        <button class="btn btn-outline btn-sm" onclick="changeWeek(1)">Siguiente →</button>
+      </div>
+      <div id="days-container"></div>
+      <button class="btn btn-olive btn-full" onclick="generateShoppingList()">🛒 Generar lista de la compra</button>
+    </div>
+
+    <!-- ── LISTA DE LA COMPRA ── -->
+    <div id="section-lista" class="section">
+      <div class="shop-header">
+        <h2>Lista de la compra</h2>
+        <button class="btn btn-sm btn-outline" onclick="clearChecked()">Borrar tachados</button>
+      </div>
+      <div id="shop-content"></div>
+      <div class="add-manual">
+        <input type="text" id="manual-item" placeholder="Añadir elemento manualmente…" onkeydown="if(event.key==='Enter')addManual()">
+        <button class="btn btn-primary" onclick="addManual()">+</button>
+      </div>
+    </div>
+
+    <!-- ── RECETARIO ── -->
+    <div id="section-recetario" class="section">
+      <div class="chips" id="recipe-filters"></div>
+      <div id="recipes-list"></div>
+    </div>
+
+    <!-- ── INGREDIENTES ── -->
+    <div id="section-ingredientes" class="section">
+      <div class="chips" id="ing-cat-filter"></div>
+      <div id="ing-catalogue"></div>
+    </div>
+
+  </div>
+</div>
+
+<button class="fab" id="fab" onclick="handleFab()">+</button>
+
+<!-- ── MODAL RECETA ── -->
+<div class="modal-overlay" id="modal-recipe">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-recipe-title">Nueva receta</div>
+    <input type="hidden" id="recipe-edit-id">
+    <div class="field">
+      <label>Nombre del plato</label>
+      <input type="text" id="recipe-name" placeholder="Ej: Pasta carbonara">
+    </div>
+    <div class="field">
+      <label>Tipo de plato</label>
+      <select id="recipe-tipo">
+        <option value="carne">🥩 Carne</option>
+        <option value="pescado">🐟 Pescado</option>
+        <option value="pasta">🍝 Pasta</option>
+        <option value="arroz">🍚 Arroz</option>
+        <option value="verdura">🥦 Verdura</option>
+        <option value="legumbre">🫘 Legumbres</option>
+        <option value="huevo">🥚 Huevo</option>
+        <option value="sopa">🍲 Sopa / Crema</option>
+        <option value="cocido">🥘 Cocido</option>
+        <option value="tapas">🫓 Tapas</option>
+        <option value="otro">🍽 Otro</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Ingredientes seleccionados</label>
+      <div class="selected-ings" id="selected-ings-display"></div>
+      <div class="ing-search">
+        <input type="text" id="ing-search-input" placeholder="Buscar ingrediente…" oninput="renderIngPicker()">
+      </div>
+      <div class="ing-picker" id="ing-picker"></div>
+      <p style="font-size:12px;color:var(--brown-mid);margin-top:6px">¿No está? Añádelo primero en la pestaña Ingredientes.</p>
+    </div>
+    <div class="field">
+      <label>Notas / Preparación (opcional)</label>
+      <textarea id="recipe-notes" placeholder="Pasos o notas…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-recipe')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveRecipe()">Guardar receta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL INGREDIENTE ── -->
+<div class="modal-overlay" id="modal-ing">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nuevo ingrediente</div>
+    <div class="field">
+      <label>Nombre</label>
+      <input type="text" id="ing-name" placeholder="Ej: Pechuga de pollo">
+    </div>
+    <div class="field">
+      <label>Categoría</label>
+      <select id="ing-cat-select">
+        <option value="carne">🥩 Carne</option>
+        <option value="pescado">🐟 Pescado</option>
+        <option value="marisco">🦐 Marisco</option>
+        <option value="fruta">🍓 Fruta</option>
+        <option value="verdura">🥦 Verdura / Hortaliza</option>
+        <option value="lacteo">🥛 Lácteo</option>
+        <option value="huevo">🥚 Huevo</option>
+        <option value="pasta">🍝 Pasta / Arroz / Cereal</option>
+        <option value="legumbre">🫘 Legumbre</option>
+        <option value="conserva">🥫 Conserva</option>
+        <option value="pan">🍞 Pan / Bollería</option>
+        <option value="condimento">🫙 Aceite / Condimento</option>
+        <option value="especia">🧂 Especias</option>
+        <option value="bebida">🧃 Bebida</option>
+        <option value="congelado">🧊 Congelado</option>
+        <option value="dulce">🍫 Dulces / Snacks</option>
+        <option value="snacks">🥨 Snacks</option>
+        <option value="frutoseco">🥜 Frutos secos</option>
+        <option value="reposteria">🧁 Repostería / Horno</option>
+        <option value="limpieza">🧴 Limpieza / Hogar</option>
+        <option value="otro">📦 Otro</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-ing')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveIngredient()">Añadir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL DATOS ── -->
+<div class="modal-overlay" id="modal-data">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Datos y copia de seguridad</div>
+
+    <div style="margin-bottom:20px">
+      <p style="font-size:13px;color:#6B5B45;margin-bottom:12px">Exporta todos tus datos (recetas, ingredientes, menús y lista) en un fichero JSON que puedes guardar o compartir.</p>
+      <button class="btn btn-olive btn-full" onclick="exportData()">⬇️ Exportar datos</button>
+    </div>
+
+    <hr style="border:none;border-top:1px solid #E8E0D0;margin-bottom:20px">
+
+    <div>
+      <p style="font-size:13px;color:#6B5B45;margin-bottom:4px">Importar desde un fichero exportado anteriormente. <strong style="color:#C5593A">Esto sobreescribirá todos los datos actuales.</strong></p>
+      <p style="font-size:12px;color:#6B5B45;margin-bottom:12px">Ideal para cambiar de móvil o compartir con alguien.</p>
+      <label style="display:block;width:100%">
+        <div class="btn btn-primary btn-full" style="justify-content:center;cursor:pointer">⬆️ Seleccionar fichero para importar</div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
+      </label>
+      <div id="import-status" style="margin-top:10px;font-size:13px;text-align:center"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-data')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+const ING_CATS = {
+  carne:     { label:'🥩 Carne',              color:'#C0392B', bg:'#FDECEA' },
+  pescado:   { label:'🐟 Pescado',            color:'#2471A3', bg:'#EAF4FB' },
+  marisco:   { label:'🦐 Marisco',            color:'#1A5276', bg:'#D6EAF8' },
+  fruta:     { label:'🍓 Fruta',              color:'#CB4335', bg:'#FDEDEC' },
+  verdura:   { label:'🥦 Verdura',            color:'#1E8449', bg:'#EAFAF1' },
+  lacteo:    { label:'🥛 Lácteo',             color:'#5D6D7E', bg:'#EBF5FB' },
+  huevo:     { label:'🥚 Huevo',              color:'#B7950B', bg:'#FEFDE7' },
+  pasta:     { label:'🍝 Pasta / Arroz',      color:'#D4AC0D', bg:'#FEF9E7' },
+  legumbre:  { label:'🫘 Legumbre',           color:'#784212', bg:'#FDF2E9' },
+  conserva:  { label:'🥫 Conserva',           color:'#5D6D7E', bg:'#EBF5FB' },
+  pan:       { label:'🍞 Pan / Bollería',     color:'#A04000', bg:'#FDEBD0' },
+  condimento:{ label:'🫙 Aceite / Condimento',color:'#7D6608', bg:'#FCF3CF' },
+  especia:   { label:'🧂 Especias',           color:'#6C3483', bg:'#F5EEF8' },
+  bebida:    { label:'🧃 Bebida',             color:'#117A65', bg:'#E8F8F5' },
+  congelado: { label:'🧊 Congelado',          color:'#2E86C1', bg:'#EBF5FB' },
+  dulce:     { label:'🍫 Dulces / Snacks',    color:'#884EA0', bg:'#F5EEF8' },
+  snacks:    { label:'🥨 Snacks',             color:'#C0392B', bg:'#FDECEA' },
+  frutoseco: { label:'🥜 Frutos secos',       color:'#7D5A2F', bg:'#F5ECD7' },
+  reposteria:{ label:'🧁 Repostería / Horno', color:'#C06B2A', bg:'#FDF0E0' },
+  limpieza:  { label:'🧴 Limpieza / Hogar',   color:'#2E86C1', bg:'#D6EAF8' },
+  otro:      { label:'📦 Otro',               color:'#6B5B45', bg:'#F5F0EA' },
+};
+
+const TIPOS = {
+  carne:   { label:'🥩 Carne',       color:'#C0392B', bg:'#FDECEA' },
+  pescado: { label:'🐟 Pescado',     color:'#2471A3', bg:'#EAF4FB' },
+  pasta:   { label:'🍝 Pasta',       color:'#D4AC0D', bg:'#FEF9E7' },
+  arroz:   { label:'🍚 Arroz',       color:'#B7950B', bg:'#FEF5E4' },
+  verdura: { label:'🥦 Verdura',     color:'#1E8449', bg:'#EAFAF1' },
+  legumbre:{ label:'🫘 Legumbres',   color:'#784212', bg:'#FDF2E9' },
+  huevo:   { label:'🥚 Huevo',       color:'#9A7D0A', bg:'#FEFDE7' },
+  sopa:    { label:'🍲 Sopa/Crema',  color:'#884EA0', bg:'#F5EEF8' },
+  cocido:  { label:'🥘 Cocido',      color:'#A04000', bg:'#FDEBD0' },
+  tapas:   { label:'🫓 Tapas',       color:'#117A65', bg:'#E8F8F5' },
+  otro:    { label:'🍽 Otro',        color:'#6B5B45', bg:'#F5F0EA' },
+};
+
+const ALL_DAYS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+function load(k,f){ try{return JSON.parse(localStorage.getItem(k))??f}catch{return f} }
+function save(k,v){ localStorage.setItem(k,JSON.stringify(v)) }
+
+let catalogue = load('ms_catalogue', getDefaultIngredients());
+let recipes   = load('ms_recipes', []);
+let menus     = load('ms_menus', {});
+let shopList  = load('ms_shop', []);
+let weekStartDay = load('ms_start_day', 6);
+
+function saveAll(){
+  save('ms_catalogue', catalogue);
+  save('ms_recipes', recipes);
+  save('ms_menus', menus);
+  save('ms_shop', shopList);
+  save('ms_start_day', weekStartDay);
+}
+
+function getDefaultIngredients(){
+  return [
+    // ── CARNE (cortes detallados)
+    {id:'i1a',name:'Pechuga de pollo',cat:'carne'},
+    {id:'i1b',name:'Muslos de pollo',cat:'carne'},
+    {id:'i1c',name:'Alitas de pollo',cat:'carne'},
+    {id:'i1d',name:'Contramuslos de pollo',cat:'carne'},
+    {id:'i1e',name:'Pollo entero',cat:'carne'},
+    {id:'i2a',name:'Filete de ternera',cat:'carne'},
+    {id:'i2b',name:'Carne picada de ternera',cat:'carne'},
+    {id:'i2c',name:'Chuleta de ternera',cat:'carne'},
+    {id:'i2d',name:'Osobuco',cat:'carne'},
+    {id:'i2e',name:'Rabo de toro',cat:'carne'},
+    {id:'i3a',name:'Lomo de cerdo',cat:'carne'},
+    {id:'i3b',name:'Solomillo de cerdo',cat:'carne'},
+    {id:'i3c',name:'Costillas de cerdo',cat:'carne'},
+    {id:'i3d',name:'Panceta',cat:'carne'},
+    {id:'i3e',name:'Carne picada de cerdo',cat:'carne'},
+    {id:'i3f',name:'Chuleta de cerdo',cat:'carne'},
+    {id:'i4a',name:'Pechuga de pavo',cat:'carne'},
+    {id:'i5a',name:'Cordero',cat:'carne'},
+    {id:'i5b',name:'Pierna de cordero',cat:'carne'},
+    {id:'i5c',name:'Chuletillas de cordero',cat:'carne'},
+    {id:'i6',name:'Jamón serrano',cat:'carne'},
+    {id:'i6b',name:'Jamón york',cat:'carne'},
+    {id:'i7',name:'Bacon',cat:'carne'},
+    {id:'i8',name:'Chorizo',cat:'carne'},
+    {id:'i8b',name:'Salchichón',cat:'carne'},
+    {id:'i8c',name:'Morcilla',cat:'carne'},
+    {id:'i8d',name:'Salchichas',cat:'carne'},
+    {id:'i8e',name:'Hamburguesa (carne)',cat:'carne'},
+    {id:'i8f',name:'Carne picada mixta',cat:'carne'},
+    // ── PESCADO
+    {id:'i10',name:'Salmón',cat:'pescado'},
+    {id:'i10b',name:'Salmón en filetes',cat:'pescado'},
+    {id:'i11',name:'Merluza',cat:'pescado'},
+    {id:'i11b',name:'Rodajas de merluza',cat:'pescado'},
+    {id:'i12',name:'Atún fresco',cat:'pescado'},
+    {id:'i13',name:'Bacalao',cat:'pescado'},
+    {id:'i13b',name:'Bacalao desalado',cat:'pescado'},
+    {id:'i14',name:'Sardinas',cat:'pescado'},
+    {id:'i15',name:'Boquerones',cat:'pescado'},
+    {id:'i15b',name:'Rape',cat:'pescado'},
+    {id:'i15c',name:'Lubina',cat:'pescado'},
+    {id:'i15d',name:'Dorada',cat:'pescado'},
+    {id:'i15e',name:'Trucha',cat:'pescado'},
+    {id:'i15f',name:'Caballa',cat:'pescado'},
+    {id:'i15g',name:'Lenguado',cat:'pescado'},
+    // ── MARISCO
+    {id:'i20',name:'Gambas',cat:'marisco'},
+    {id:'i20b',name:'Gambas peladas',cat:'marisco'},
+    {id:'i21',name:'Mejillones',cat:'marisco'},
+    {id:'i22',name:'Almejas',cat:'marisco'},
+    {id:'i23',name:'Calamares',cat:'marisco'},
+    {id:'i23b',name:'Sepia',cat:'marisco'},
+    {id:'i23c',name:'Pulpo',cat:'marisco'},
+    {id:'i23d',name:'Langostinos',cat:'marisco'},
+    {id:'i23e',name:'Berberechos',cat:'marisco'},
+    {id:'i23f',name:'Navajas',cat:'marisco'},
+    // ── FRUTA
+    {id:'i30',name:'Manzana',cat:'fruta'},
+    {id:'i31',name:'Naranja',cat:'fruta'},
+    {id:'i32',name:'Plátano',cat:'fruta'},
+    {id:'i33',name:'Pera',cat:'fruta'},
+    {id:'i34',name:'Uvas',cat:'fruta'},
+    {id:'i35',name:'Fresas',cat:'fruta'},
+    {id:'i36',name:'Limón',cat:'fruta'},
+    {id:'i36b',name:'Lima',cat:'fruta'},
+    {id:'i36c',name:'Melocotón',cat:'fruta'},
+    {id:'i36d',name:'Sandía',cat:'fruta'},
+    {id:'i36e',name:'Melón',cat:'fruta'},
+    {id:'i36f',name:'Kiwi',cat:'fruta'},
+    {id:'i36g',name:'Mandarina',cat:'fruta'},
+    {id:'i36h',name:'Cerezas',cat:'fruta'},
+    {id:'i36i',name:'Ciruelas',cat:'fruta'},
+    // ── VERDURA
+    {id:'i37',name:'Tomate',cat:'verdura'},
+    {id:'i37b',name:'Tomate cherry',cat:'verdura'},
+    {id:'i40',name:'Cebolla',cat:'verdura'},
+    {id:'i40b',name:'Cebolla morada',cat:'verdura'},
+    {id:'i40c',name:'Cebolleta',cat:'verdura'},
+    {id:'i41',name:'Ajo',cat:'verdura'},
+    {id:'i42',name:'Pimiento rojo',cat:'verdura'},
+    {id:'i42b',name:'Pimiento verde',cat:'verdura'},
+    {id:'i42c',name:'Pimiento amarillo',cat:'verdura'},
+    {id:'i43',name:'Zanahoria',cat:'verdura'},
+    {id:'i44',name:'Patata',cat:'verdura'},
+    {id:'i44b',name:'Boniato',cat:'verdura'},
+    {id:'i45',name:'Espinacas',cat:'verdura'},
+    {id:'i46',name:'Calabacín',cat:'verdura'},
+    {id:'i47',name:'Berenjena',cat:'verdura'},
+    {id:'i48',name:'Lechuga',cat:'verdura'},
+    {id:'i48b',name:'Rúcula',cat:'verdura'},
+    {id:'i48c',name:'Canónigos',cat:'verdura'},
+    {id:'i49',name:'Brócoli',cat:'verdura'},
+    {id:'i50',name:'Coliflor',cat:'verdura'},
+    {id:'i51',name:'Puerro',cat:'verdura'},
+    {id:'i51b',name:'Apio',cat:'verdura'},
+    {id:'i51c',name:'Pepino',cat:'verdura'},
+    {id:'i51d',name:'Aguacate',cat:'verdura'},
+    {id:'i51e',name:'Champiñones',cat:'verdura'},
+    {id:'i51f',name:'Setas',cat:'verdura'},
+    {id:'i51g',name:'Alcachofas',cat:'verdura'},
+    {id:'i51h',name:'Espárragos',cat:'verdura'},
+    {id:'i51i',name:'Judías verdes',cat:'verdura'},
+    {id:'i51j',name:'Remolacha',cat:'verdura'},
+    {id:'i51k',name:'Nabo',cat:'verdura'},
+    {id:'i51l',name:'Col',cat:'verdura'},
+    // ── LÁCTEO
+    {id:'i60',name:'Leche entera',cat:'lacteo'},
+    {id:'i60b',name:'Leche desnatada',cat:'lacteo'},
+    {id:'i61',name:'Nata para cocinar',cat:'lacteo'},
+    {id:'i61b',name:'Nata para montar',cat:'lacteo'},
+    {id:'i62',name:'Mantequilla',cat:'lacteo'},
+    {id:'i63',name:'Queso fresco',cat:'lacteo'},
+    {id:'i63b',name:'Queso curado',cat:'lacteo'},
+    {id:'i63c',name:'Queso manchego',cat:'lacteo'},
+    {id:'i64',name:'Yogur natural',cat:'lacteo'},
+    {id:'i64b',name:'Yogur griego',cat:'lacteo'},
+    {id:'i65',name:'Queso rallado',cat:'lacteo'},
+    {id:'i66',name:'Queso ricotta',cat:'lacteo'},
+    {id:'i67',name:'Mozzarella',cat:'lacteo'},
+    {id:'i67b',name:'Queso crema',cat:'lacteo'},
+    {id:'i67c',name:'Leche evaporada',cat:'lacteo'},
+    // ── HUEVO
+    {id:'i70',name:'Huevos',cat:'huevo'},
+    {id:'i70b',name:'Claras de huevo',cat:'huevo'},
+    // ── PASTA
+    {id:'i80',name:'Espaguetis',cat:'pasta'},
+    {id:'i81',name:'Macarrones',cat:'pasta'},
+    {id:'i82',name:'Fideos',cat:'pasta'},
+    {id:'i83',name:'Lasaña (placas)',cat:'pasta'},
+    {id:'i84',name:'Penne',cat:'pasta'},
+    {id:'i84b',name:'Tallarines',cat:'pasta'},
+    {id:'i84c',name:'Fusilli',cat:'pasta'},
+    {id:'i84d',name:'Pasta fresca',cat:'pasta'},
+    // ── ARROZ
+    {id:'i85',name:'Arroz redondo',cat:'arroz'},
+    {id:'i85b',name:'Arroz largo',cat:'arroz'},
+    {id:'i85c',name:'Arroz integral',cat:'arroz'},
+    {id:'i85d',name:'Arroz basmati',cat:'arroz'},
+    // ── LEGUMBRE
+    {id:'i90',name:'Lentejas',cat:'legumbre'},
+    {id:'i91',name:'Garbanzos',cat:'legumbre'},
+    {id:'i92',name:'Alubias blancas',cat:'legumbre'},
+    {id:'i92b',name:'Alubias negras',cat:'legumbre'},
+    {id:'i93',name:'Guisantes',cat:'legumbre'},
+    {id:'i93b',name:'Habas',cat:'legumbre'},
+    {id:'i93c',name:'Soja',cat:'legumbre'},
+    // ── CONSERVA
+    {id:'i100',name:'Tomate triturado',cat:'conserva'},
+    {id:'i100b',name:'Tomate frito',cat:'conserva'},
+    {id:'i101',name:'Atún en lata',cat:'conserva'},
+    {id:'i101b',name:'Sardinas en lata',cat:'conserva'},
+    {id:'i102',name:'Caldo de pollo',cat:'conserva'},
+    {id:'i103',name:'Caldo de pescado',cat:'conserva'},
+    {id:'i103b',name:'Caldo de verduras',cat:'conserva'},
+    {id:'i103c',name:'Leche de coco',cat:'conserva'},
+    {id:'i103d',name:'Aceitunas',cat:'conserva'},
+    {id:'i103e',name:'Pepinillos',cat:'conserva'},
+    {id:'i103f',name:'Alcaparras',cat:'conserva'},
+    // ── PAN
+    {id:'i110',name:'Pan',cat:'pan'},
+    {id:'i111',name:'Pan rallado',cat:'pan'},
+    {id:'i111b',name:'Pan de molde',cat:'pan'},
+    {id:'i111c',name:'Pan de pita',cat:'pan'},
+    {id:'i111d',name:'Tostadas',cat:'pan'},
+    // ── CONDIMENTO
+    {id:'i120',name:'Aceite de oliva',cat:'condimento'},
+    {id:'i120b',name:'Aceite de girasol',cat:'condimento'},
+    {id:'i121',name:'Vinagre de vino',cat:'condimento'},
+    {id:'i121b',name:'Vinagre de manzana',cat:'condimento'},
+    {id:'i121c',name:'Vinagre balsámico',cat:'condimento'},
+    {id:'i122',name:'Salsa de tomate',cat:'condimento'},
+    {id:'i123',name:'Mayonesa',cat:'condimento'},
+    {id:'i123b',name:'Mostaza',cat:'condimento'},
+    {id:'i123c',name:'Salsa de soja',cat:'condimento'},
+    {id:'i123d',name:'Salsa Worcestershire',cat:'condimento'},
+    {id:'i123e',name:'Tabasco',cat:'condimento'},
+    // ── ESPECIA
+    {id:'i130',name:'Sal',cat:'especia'},
+    {id:'i131',name:'Pimienta negra',cat:'especia'},
+    {id:'i131b',name:'Pimienta blanca',cat:'especia'},
+    {id:'i132',name:'Pimentón dulce',cat:'especia'},
+    {id:'i132b',name:'Pimentón picante',cat:'especia'},
+    {id:'i133',name:'Orégano',cat:'especia'},
+    {id:'i134',name:'Comino',cat:'especia'},
+    {id:'i135',name:'Laurel',cat:'especia'},
+    {id:'i136',name:'Perejil',cat:'especia'},
+    {id:'i137',name:'Azafrán',cat:'especia'},
+    {id:'i137b',name:'Tomillo',cat:'especia'},
+    {id:'i137c',name:'Romero',cat:'especia'},
+    {id:'i137d',name:'Curry',cat:'especia'},
+    {id:'i137e',name:'Cúrcuma',cat:'especia'},
+    {id:'i137f',name:'Canela',cat:'especia'},
+    {id:'i137g',name:'Nuez moscada',cat:'especia'},
+    {id:'i137h',name:'Ajo en polvo',cat:'especia'},
+    {id:'i137i',name:'Cebolla en polvo',cat:'especia'},
+    // ── FRUTOS SECOS
+    {id:'i150',name:'Almendras',cat:'frutoseco'},
+    {id:'i151',name:'Nueces',cat:'frutoseco'},
+    {id:'i152',name:'Avellanas',cat:'frutoseco'},
+    {id:'i153',name:'Piñones',cat:'frutoseco'},
+    {id:'i154',name:'Anacardos',cat:'frutoseco'},
+    {id:'i155',name:'Pistachos',cat:'frutoseco'},
+    {id:'i156',name:'Pasas',cat:'frutoseco'},
+    {id:'i157',name:'Dátiles',cat:'frutoseco'},
+    {id:'i158',name:'Cacahuetes',cat:'frutoseco'},
+    // ── REPOSTERÍA / HORNO
+    {id:'i160',name:'Harina de trigo',cat:'reposteria'},
+    {id:'i161',name:'Harina de maíz',cat:'reposteria'},
+    {id:'i162',name:'Azúcar',cat:'reposteria'},
+    {id:'i163',name:'Azúcar moreno',cat:'reposteria'},
+    {id:'i164',name:'Miel',cat:'reposteria'},
+    {id:'i165',name:'Levadura química',cat:'reposteria'},
+    {id:'i166',name:'Levadura fresca',cat:'reposteria'},
+    {id:'i167',name:'Cacao en polvo',cat:'reposteria'},
+    {id:'i168',name:'Chocolate negro',cat:'reposteria'},
+    {id:'i169',name:'Chocolate con leche',cat:'reposteria'},
+    {id:'i170',name:'Vainilla',cat:'reposteria'},
+    {id:'i171',name:'Maicena',cat:'reposteria'},
+    {id:'i172',name:'Aceite de coco',cat:'reposteria'},
+    {id:'i173',name:'Sirope de arce',cat:'reposteria'},
+    // ── BEBIDA
+    {id:'i180',name:'Vino blanco',cat:'bebida'},
+    {id:'i181',name:'Vino tinto',cat:'bebida'},
+    {id:'i182',name:'Cerveza',cat:'bebida'},
+    {id:'i183',name:'Zumo de naranja',cat:'bebida'},
+    {id:'i184',name:'Agua con gas',cat:'bebida'},
+  ];
+}
+
+// Merge new defaults into existing catalogue without duplicating
+function mergeDefaultIngredients(){
+  const defaults = getDefaultIngredients();
+  const existingIds = new Set(catalogue.map(i => i.id));
+  const toAdd = defaults.filter(i => !existingIds.has(i.id));
+  if(toAdd.length){ catalogue = [...catalogue, ...toAdd]; saveAll(); }
+}
+
+// ═══════════════════════════════════════
+// TABS & STATE
+// ═══════════════════════════════════════
+let currentTab = 'menu';
+let weekOffset = 0;
+let activeRecipeFilter = 'all';
+let activeIngCatFilter = 'all';
+let selectedIngIds = []; // for recipe modal
+
+function switchTab(tab){
+  currentTab = tab;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`section-${tab}`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  document.getElementById('fab').style.display = tab==='lista' ? 'none' : 'flex';
+  if(tab==='menu') renderWeek();
+  if(tab==='lista') renderShop();
+  if(tab==='recetario') renderRecipes();
+  if(tab==='ingredientes') renderCatalogue();
+}
+
+function handleFab(){
+  if(currentTab==='recetario') openRecipeModal();
+  if(currentTab==='ingredientes') openIngModal();
+}
+
+// ═══════════════════════════════════════
+// WEEK HELPERS
+// ═══════════════════════════════════════
+function getWeekStart(offset=0){
+  const d=new Date(); let diff=d.getDay()-weekStartDay;
+  if(diff<0) diff+=7;
+  d.setDate(d.getDate()-diff+offset*7); d.setHours(0,0,0,0); return d;
+}
+function getWeekDayNames(){
+  const n=[];
+  for(let i=0;i<7;i++) n.push(ALL_DAYS[(weekStartDay+i)%7]);
+  return n;
+}
+function updateEndDayLabel(){
+  document.getElementById('end-day-label').textContent = ALL_DAYS[(weekStartDay+6)%7].toLowerCase();
+  const s=document.getElementById('start-day-select'); if(s) s.value=String(weekStartDay);
+}
+function changeStartDay(v){ weekStartDay=parseInt(v); weekOffset=0; saveAll(); updateEndDayLabel(); renderWeek(); }
+function changeWeek(d){ weekOffset+=d; renderWeek(); }
+function fmtDate(d){ return `${d.getDate()} ${d.toLocaleString('es',{month:'short'})}`; }
+function dayKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+// ═══════════════════════════════════════
+// MENÚ SEMANAL
+// ═══════════════════════════════════════
+function renderWeek(){
+  const start=getWeekStart(weekOffset);
+  const end=new Date(start); end.setDate(end.getDate()+6);
+  document.getElementById('week-label').textContent=`${fmtDate(start)} – ${fmtDate(end)}`;
+  const names=getWeekDayNames(), container=document.getElementById('days-container');
+  container.innerHTML='';
+  const todayKey=dayKey(new Date());
+  for(let i=0;i<7;i++){
+    const d=new Date(start); d.setDate(d.getDate()+i);
+    const key=dayKey(d), dd=menus[key]||{}, isToday=key===todayKey;
+    const card=document.createElement('div'); card.className='day-card';
+    card.innerHTML=`
+      <div class="day-header ${isToday?'today':''}">
+        <span class="day-name">${names[i]}</span><span class="day-date">${fmtDate(d)}</span>
+      </div>
+      <div class="day-meals">
+        <div class="meal-row">
+          <span class="meal-label">🍳 Comida</span>
+          ${mealSelect(key,'lunch',dd.lunch)}
+          ${dd.lunch?`<button class="meal-clear" onclick="clearMeal('${key}','lunch')">×</button>`:''}
+        </div>
+        <div class="meal-row">
+          <span class="meal-label">🌙 Cena</span>
+          ${mealSelect(key,'dinner',dd.dinner)}
+          ${dd.dinner?`<button class="meal-clear" onclick="clearMeal('${key}','dinner')">×</button>`:''}
+        </div>
+      </div>`;
+    container.appendChild(card);
+  }
+}
+function mealSelect(dk,meal,sel){
+  const opts=recipes.map(r=>`<option value="${r.id}" ${r.id===sel?'selected':''}>${r.name}</option>`).join('');
+  return `<select class="meal-select" style="flex:1" onchange="setMeal('${dk}','${meal}',this.value)">
+    <option value="">— Sin asignar —</option>${opts}</select>`;
+}
+function setMeal(key,meal,rid){
+  if(!menus[key]) menus[key]={};
+  if(rid) menus[key][meal]=rid; else delete menus[key][meal];
+  saveAll(); renderWeek();
+}
+function clearMeal(key,meal){
+  if(menus[key]) delete menus[key][meal];
+  saveAll(); renderWeek();
+}
+
+// ═══════════════════════════════════════
+// LISTA DE LA COMPRA
+// ═══════════════════════════════════════
+function generateShoppingList(){
+  const start=getWeekStart(weekOffset);
+  // Build ingredient map: ingId → { ingObj, sources[] }
+  const ingMap={};
+  for(let i=0;i<7;i++){
+    const d=new Date(start); d.setDate(d.getDate()+i);
+    const dayData=menus[dayKey(d)]||{};
+    ['lunch','dinner'].forEach(meal=>{
+      const recipe=recipes.find(r=>r.id===dayData[meal]);
+      if(!recipe) return;
+      (recipe.ingredients||[]).forEach(iid=>{
+        const ing=catalogue.find(c=>c.id===iid);
+        if(!ing) return;
+        if(!ingMap[iid]) ingMap[iid]={ing, sources:[]};
+        ingMap[iid].sources.push(recipe.name);
+      });
+    });
+  }
+  const manualItems=shopList.filter(i=>i.manual);
+  const oldChecked={};
+  shopList.filter(i=>!i.manual).forEach(i=>{ if(i.checked) oldChecked[i.id]=true; });
+
+  const autoItems=Object.values(ingMap).map(({ing,sources})=>({
+    id:'auto_'+ing.id, name:ing.name, cat:ing.cat,
+    checked:!!oldChecked['auto_'+ing.id],
+    manual:false,
+    source:[...new Set(sources)].join(', ')
+  }));
+
+  shopList=[...autoItems,...manualItems];
+  saveAll(); switchTab('lista');
+}
+
+function renderShop(){
+  const el=document.getElementById('shop-content');
+  if(!shopList.length){
+    el.innerHTML=`<div class="empty"><div class="ei">🛒</div><p>Lista vacía.<br>Crea el menú y pulsa<br><strong>«Generar lista de la compra»</strong></p></div>`;
+    return;
+  }
+  let html='';
+  const auto=shopList.filter(i=>!i.manual);
+  const manual=shopList.filter(i=>i.manual);
+
+  if(auto.length){
+    const byCat={};
+    auto.forEach(item=>{ const c=item.cat||'otro'; (byCat[c]=byCat[c]||[]).push(item); });
+    Object.keys(ING_CATS).forEach(cat=>{
+      if(!byCat[cat]?.length) return;
+      const info=ING_CATS[cat];
+      html+=`<div class="section-sep" style="color:${info.color}">${info.label}</div>`;
+      html+=`<div class="shop-group">`;
+      byCat[cat].forEach(item=>{ html+=shopItemHTML(item); });
+      html+=`</div>`;
+    });
+  }
+  if(manual.length){
+    html+=`<div class="section-sep" style="color:var(--brown-mid);margin-top:12px">➕ Añadidos manualmente</div>`;
+    html+=`<div class="shop-group">`;
+    manual.forEach(item=>{ html+=shopItemHTML(item); });
+    html+=`</div>`;
+  }
+  el.innerHTML=html;
+}
+
+function shopItemHTML(item){
+  return `<div class="shop-item ${item.checked?'checked':''}" id="si-${item.id}">
+    <button class="shop-check" onclick="toggleItem('${item.id}')">✓</button>
+    <div style="flex:1">
+      <div class="item-name">${item.name}</div>
+      ${item.source?`<div class="item-src">${item.source}</div>`:''}
+    </div>
+    <button class="item-del" onclick="deleteItem('${item.id}')">🗑</button>
+  </div>`;
+}
+function toggleItem(id){ const i=shopList.find(i=>i.id===id); if(i){i.checked=!i.checked; saveAll(); renderShop();} }
+function deleteItem(id){ shopList=shopList.filter(i=>i.id!==id); saveAll(); renderShop(); }
+function clearChecked(){ shopList=shopList.filter(i=>!i.checked); saveAll(); renderShop(); }
+function addManual(){
+  const el=document.getElementById('manual-item'), v=el.value.trim();
+  if(!v) return;
+  shopList.push({id:'manual_'+Date.now(),name:v,cat:'otro',checked:false,manual:true,source:''});
+  el.value=''; saveAll(); renderShop();
+}
+
+// ═══════════════════════════════════════
+// RECETARIO
+// ═══════════════════════════════════════
+function renderFilterChips(){
+  const usedTipos=[...new Set(recipes.map(r=>r.tipo||'otro'))];
+  const all=[{key:'all',label:'Todos'},...Object.entries(TIPOS)
+    .filter(([k])=>usedTipos.includes(k)).map(([k,v])=>({key:k,label:v.label}))];
+  document.getElementById('recipe-filters').innerHTML=all.map(({key,label})=>
+    `<button class="chip ${activeRecipeFilter===key?'active':''}" onclick="setRecipeFilter('${key}')">${label}</button>`
+  ).join('');
+}
+function setRecipeFilter(t){ activeRecipeFilter=t; renderRecipes(); }
+
+function renderRecipes(){
+  renderFilterChips();
+  const el=document.getElementById('recipes-list');
+  const filtered=activeRecipeFilter==='all' ? recipes : recipes.filter(r=>(r.tipo||'otro')===activeRecipeFilter);
+  if(!recipes.length){
+    el.innerHTML=`<div class="empty"><div class="ei">📖</div><p>Sin recetas.<br>Pulsa <strong>+</strong> para añadir la primera.</p></div>`;
+    return;
+  }
+  if(!filtered.length){
+    el.innerHTML=`<div class="empty"><div class="ei">🔍</div><p>Sin recetas de este tipo.</p></div>`;
+    return;
+  }
+  el.innerHTML=filtered.map(r=>{
+    const tipo=TIPOS[r.tipo||'otro'];
+    const ingNames=(r.ingredients||[]).map(iid=>{
+      const ing=catalogue.find(c=>c.id===iid);
+      return ing ? ing.name : null;
+    }).filter(Boolean);
+    return `<div class="recipe-card" style="border-left-color:${tipo.color}">
+      <div class="recipe-header">
+        <div>
+          <div class="recipe-name">${r.name}</div>
+          <span class="tag" style="background:${tipo.bg};color:${tipo.color}">${tipo.label}</span>
+        </div>
+        <div class="recipe-actions">
+          <button class="btn-icon" style="font-size:18px;padding:6px 8px" onclick="openRecipeModal('${r.id}')">✏️</button>
+          <button class="btn-icon" style="font-size:18px;padding:6px 8px;color:#C5593A" onclick="deleteRecipe('${r.id}')">✕</button>
+        </div>
+      </div>
+      <div style="margin-top:6px;display:flex;gap:14px;flex-wrap:wrap">
+        ${ingNames.length ? `
+        <span class="recipe-toggle" onclick="toggleIng('ri-${r.id}',this)">
+          🧂 Ver ingredientes (${ingNames.length})
+        </span>` : ''}
+        ${r.notes ? `
+        <span class="recipe-toggle" onclick="toggleIng('rn-${r.id}',this)" data-open-label="🍳 Ocultar preparación" data-closed-label="🍳 Ver preparación">
+          🍳 Ver preparación
+        </span>` : ''}
+      </div>
+      ${ingNames.length ? `
+      <div class="recipe-ings" id="ri-${r.id}">
+        <ul>${ingNames.map(n=>`<li>${n}</li>`).join('')}</ul>
+      </div>` : ''}
+      ${r.notes ? `
+      <div class="recipe-ings" id="rn-${r.id}">
+        <p style="font-size:13px;color:var(--brown-mid);white-space:pre-line;line-height:1.6">${r.notes}</p>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function toggleIng(id,el){
+  const div=document.getElementById(id);
+  div.classList.toggle('open');
+  const isOpen=div.classList.contains('open');
+  if(el.dataset.openLabel){
+    el.textContent=isOpen ? el.dataset.openLabel : el.dataset.closedLabel;
+  } else {
+    const n=div.querySelectorAll('li').length;
+    el.textContent=isOpen ? '🧂 Ocultar ingredientes' : `🧂 Ver ingredientes (${n})`;
+  }
+}
+
+function openRecipeModal(id=null){
+  selectedIngIds=[];
+  document.getElementById('recipe-edit-id').value=id||'';
+  document.getElementById('ing-search-input').value='';
+  if(id){
+    const r=recipes.find(r=>r.id===id);
+    document.getElementById('modal-recipe-title').textContent='Editar receta';
+    document.getElementById('recipe-name').value=r.name;
+    document.getElementById('recipe-tipo').value=r.tipo||'otro';
+    document.getElementById('recipe-notes').value=r.notes||'';
+    selectedIngIds=[...(r.ingredients||[])];
+  } else {
+    document.getElementById('modal-recipe-title').textContent='Nueva receta';
+    document.getElementById('recipe-name').value='';
+    document.getElementById('recipe-tipo').value='carne';
+    document.getElementById('recipe-notes').value='';
+  }
+  renderIngPicker(); renderSelectedIngs();
+  document.getElementById('modal-recipe').classList.add('open');
+}
+
+function renderSelectedIngs(){
+  const el=document.getElementById('selected-ings-display');
+  if(!selectedIngIds.length){
+    el.innerHTML=`<span style="font-size:13px;color:var(--brown-mid)">Selecciona ingredientes abajo…</span>`;
+    return;
+  }
+  el.innerHTML=selectedIngIds.map(iid=>{
+    const ing=catalogue.find(c=>c.id===iid);
+    if(!ing) return '';
+    const info=ING_CATS[ing.cat]||ING_CATS.otro;
+    return `<span class="sel-chip" style="background:${info.bg};color:${info.color}" onclick="toggleIngSelection('${iid}')">
+      ${ing.name} ×</span>`;
+  }).join('');
+}
+
+function renderIngPicker(){
+  const q=document.getElementById('ing-search-input').value.trim().toLowerCase();
+  const el=document.getElementById('ing-picker');
+  const visible=q ? catalogue.filter(i=>i.name.toLowerCase().includes(q)) : catalogue;
+  const byCat={};
+  visible.forEach(i=>{ (byCat[i.cat]=byCat[i.cat]||[]).push(i); });
+  let html='';
+  Object.keys(ING_CATS).forEach(cat=>{
+    if(!byCat[cat]?.length) return;
+    if(!q) html+=`<div class="ing-picker-cat">${ING_CATS[cat].label}</div>`;
+    byCat[cat].forEach(ing=>{
+      const sel=selectedIngIds.includes(ing.id);
+      html+=`<div class="ing-option ${sel?'selected':''}" onclick="toggleIngSelection('${ing.id}')">
+        <div class="ing-check">${sel?'✓':''}</div>
+        <span style="flex:1">${ing.name}</span>
+      </div>`;
+    });
+  });
+  if(!html) html=`<div style="padding:12px;text-align:center;color:var(--brown-mid);font-size:13px">Sin resultados</div>`;
+  el.innerHTML=html;
+}
+
+function toggleIngSelection(iid){
+  const idx=selectedIngIds.indexOf(iid);
+  if(idx>=0) selectedIngIds.splice(idx,1); else selectedIngIds.push(iid);
+  renderIngPicker(); renderSelectedIngs();
+}
+
+function saveRecipe(){
+  const name=document.getElementById('recipe-name').value.trim();
+  if(!name){ alert('Ponle un nombre al plato'); return; }
+  const tipo=document.getElementById('recipe-tipo').value;
+  const notes=document.getElementById('recipe-notes').value.trim();
+  const editId=document.getElementById('recipe-edit-id').value;
+  if(editId){
+    const r=recipes.find(r=>r.id===editId);
+    if(r){ r.name=name; r.tipo=tipo; r.ingredients=[...selectedIngIds]; r.notes=notes; }
+  } else {
+    recipes.push({id:'r_'+Date.now(), name, tipo, ingredients:[...selectedIngIds], notes});
+  }
+  saveAll(); closeModal('modal-recipe'); renderRecipes(); renderWeek();
+}
+
+function deleteRecipe(id){
+  recipes=recipes.filter(r=>r.id!==id);
+  Object.keys(menus).forEach(k=>{
+    if(menus[k].lunch===id) delete menus[k].lunch;
+    if(menus[k].dinner===id) delete menus[k].dinner;
+  });
+  saveAll(); renderRecipes();
+}
+
+// ═══════════════════════════════════════
+// CATÁLOGO DE INGREDIENTES
+// ═══════════════════════════════════════
+function renderCatFilterChips(){
+  const usedCats=[...new Set(catalogue.map(i=>i.cat))];
+  const all=[{key:'all',label:'Todos'},...Object.entries(ING_CATS)
+    .filter(([k])=>usedCats.includes(k)).map(([k,v])=>({key:k,label:v.label}))];
+  document.getElementById('ing-cat-filter').innerHTML=all.map(({key,label})=>
+    `<button class="chip ${activeIngCatFilter===key?'active':''}" onclick="setIngCatFilter('${key}')">${label}</button>`
+  ).join('');
+}
+function setIngCatFilter(c){ activeIngCatFilter=c; renderCatalogue(); }
+
+function renderCatalogue(){
+  renderCatFilterChips();
+  const el=document.getElementById('ing-catalogue');
+  const filtered=activeIngCatFilter==='all' ? catalogue : catalogue.filter(i=>i.cat===activeIngCatFilter);
+  if(!filtered.length){
+    el.innerHTML=`<div class="empty"><div class="ei">🥕</div><p>Sin ingredientes.<br>Pulsa <strong>+</strong> para añadir.</p></div>`;
+    return;
+  }
+  const byCat={};
+  filtered.forEach(i=>{ (byCat[i.cat]=byCat[i.cat]||[]).push(i); });
+  let html='';
+  Object.keys(ING_CATS).forEach(cat=>{
+    if(!byCat[cat]?.length) return;
+    const info=ING_CATS[cat];
+    html+=`<div class="ing-cat-block">
+      <div class="ing-cat-title" style="color:${info.color}">${info.label}</div>
+      <div class="ing-grid">
+        ${byCat[cat].map(ing=>`
+          <span class="ing-tag" style="background:${info.bg};color:${info.color};border-color:${info.color}30">
+            ${ing.name}
+            <button class="del-ing" onclick="deleteIngredient('${ing.id}')">×</button>
+          </span>`).join('')}
+      </div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+function openIngModal(){
+  document.getElementById('ing-name').value='';
+  document.getElementById('ing-cat-select').value='verdura';
+  document.getElementById('modal-ing').classList.add('open');
+}
+
+function saveIngredient(){
+  const name=document.getElementById('ing-name').value.trim();
+  if(!name){ alert('Escribe un nombre'); return; }
+  const cat=document.getElementById('ing-cat-select').value;
+  catalogue.push({id:'c_'+Date.now(), name, cat});
+  saveAll(); closeModal('modal-ing'); renderCatalogue();
+}
+
+function deleteIngredient(id){
+  catalogue=catalogue.filter(i=>i.id!==id);
+  recipes.forEach(r=>{ r.ingredients=(r.ingredients||[]).filter(iid=>iid!==id); });
+  saveAll(); renderCatalogue();
+}
+
+// ═══════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════
+// EXPORTAR / IMPORTAR
+// ═══════════════════════════════════════
+function exportData(){
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    catalogue,
+    recipes,
+    menus,
+    shopList,
+    weekStartDay,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `menusemanal-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(input){
+  const file = input.files[0];
+  if(!file) return;
+  const status = document.getElementById('import-status');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(!data.catalogue || !data.recipes){
+        status.innerHTML = '<span style="color:#C5593A">❌ Fichero no válido o incompleto.</span>';
+        return;
+      }
+      catalogue    = data.catalogue    || [];
+      recipes      = data.recipes      || [];
+      menus        = data.menus        || {};
+      shopList     = data.shopList     || [];
+      weekStartDay = data.weekStartDay ?? 6;
+      saveAll();
+      status.innerHTML = `<span style="color:#1E8449">✅ Importado correctamente — ${recipes.length} recetas, ${catalogue.length} ingredientes.</span>`;
+      setTimeout(()=>{
+        closeModal('modal-data');
+        updateEndDayLabel();
+        switchTab(currentTab);
+      }, 1800);
+    } catch(err){
+      status.innerHTML = '<span style="color:#C5593A">❌ Error al leer el fichero.</span>';
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+updateEndDayLabel();
+mergeDefaultIngredients();
+renderWeek();
+</script>
+</body>
+</html>
