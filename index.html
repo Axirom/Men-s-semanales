@@ -184,6 +184,83 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 .modal-actions { display:flex; gap:8px; margin-top:16px; }
 .modal-actions .btn { flex:1; justify-content:center; }
 
+/* ── MEAL CHIPS (multiple recipes per slot) ── */
+.meal-chips { display:flex; flex-wrap:wrap; gap:5px; flex:1; align-items:center; min-height:28px; }
+.meal-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 8px;
+  background:#F0EBE3; border-radius:20px; font-size:12px; font-weight:600; color:#2C2416; }
+.meal-chip .rm { background:none; border:none; color:#6B5B45; font-size:13px; cursor:pointer;
+  padding:0 0 0 2px; line-height:1; }
+.meal-chip .rm:hover { color:#C5593A; }
+.meal-add-btn { background:#FAF7F2; border:1.5px dashed #6B5B45; color:#6B5B45;
+  border-radius:20px; font-size:12px; font-weight:600; padding:4px 10px; cursor:pointer;
+  white-space:nowrap; flex-shrink:0; }
+.meal-add-btn:hover { background:#F0EBE3; }
+
+/* ── EXTRAS SECTION ── */
+.extras-card { background:#FFFFFF; border-radius:var(--r); box-shadow:var(--shadow);
+  margin-top:10px; overflow:hidden; }
+.extras-header { background:#D4DCC6; border-left:4px solid #7A8C5E; padding:9px 14px;
+  font-family:'Fraunces',serif; font-size:14px; font-weight:700; color:#2C2416; }
+.extras-body { padding:10px 14px; }
+.extras-chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+.extra-chip { display:inline-flex; align-items:center; gap:5px; padding:5px 10px;
+  background:#EAFAF1; border:1.5px solid #A9DFBF; border-radius:20px; font-size:13px; font-weight:600; color:#1E8449; }
+.extra-chip .rm { background:none; border:none; color:#7A8C5E; font-size:14px;
+  cursor:pointer; padding:0 0 0 2px; }
+.extra-chip .rm:hover { color:#C5593A; }
+
+/* ── RECIPE PICKER SHEET ── */
+.picker-overlay { position:fixed; inset:0; background:rgba(44,36,22,.45);
+  display:none; align-items:flex-end; justify-content:center; z-index:1100; }
+.picker-overlay.open { display:flex; }
+.picker-sheet { background:#FFFFFF; border-radius:20px 20px 0 0; width:100%;
+  max-height:72dvh; display:flex; flex-direction:column; animation:slideUp .25s ease; }
+.picker-head { padding:14px 16px 10px; border-bottom:1px solid #E8E0D0; flex-shrink:0; }
+.picker-title { font-family:'Fraunces',serif; font-size:16px; font-weight:700;
+  color:#2C2416; margin-bottom:10px; }
+.picker-list { overflow-y:auto; flex:1; }
+.picker-item { display:flex; align-items:center; gap:10px; padding:12px 16px;
+  border-bottom:1px solid #E8E0D0; cursor:pointer; }
+.picker-item:last-child { border-bottom:none; }
+.picker-item:active { background:#FAF7F2; }
+.picker-item-name { flex:1; font-size:14px; color:#2C2416; font-weight:500; }
+.picker-item-tipo { font-size:11px; color:#6B5B45; }
+.picker-cancel { padding:12px; text-align:center; border-top:1px solid #E8E0D0;
+  font-size:14px; font-weight:600; color:#C5593A; cursor:pointer; flex-shrink:0; }
+
+/* ── CALENDAR PICKER ── */
+.cal-overlay { position:fixed; inset:0; background:rgba(44,36,22,.45);
+  display:none; align-items:flex-start; justify-content:center;
+  z-index:1200; padding-top:120px; }
+.cal-overlay.open { display:flex; }
+.cal-box { background:#FFFFFF; border-radius:16px; box-shadow:0 8px 32px rgba(44,36,22,.18);
+  width:calc(100% - 32px); max-width:340px; overflow:hidden; animation:fadeIn .2s ease; }
+.cal-head { display:flex; align-items:center; justify-content:space-between;
+  padding:12px 14px; background:#F0EBE3; }
+.cal-month-label { font-family:'Fraunces',serif; font-size:16px; font-weight:700;
+  color:#2C2416; cursor:pointer; flex:1; text-align:center; }
+.cal-nav { background:none; border:none; font-size:18px; color:#6B5B45;
+  cursor:pointer; padding:4px 8px; border-radius:6px; }
+.cal-nav:hover { background:#E8E0D0; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); padding:8px 8px 12px; gap:2px; }
+.cal-dow { text-align:center; font-size:10px; font-weight:700; color:#6B5B45;
+  padding:4px 0; text-transform:uppercase; letter-spacing:.4px; }
+.cal-day { text-align:center; font-size:13px; padding:7px 2px; border-radius:8px;
+  cursor:pointer; color:#2C2416; font-weight:500; transition:background .12s; }
+.cal-day:hover { background:#F0EBE3; }
+.cal-day.other-month { color:#C8BFB0; }
+.cal-day.in-week { background:#F0EBE3; color:#2C2416; font-weight:600; }
+.cal-day.week-start { background:#C5593A; color:#FFFFFF !important; border-radius:8px 0 0 8px; }
+.cal-day.week-end { border-radius:0 8px 8px 0; }
+.cal-day.today-dot { position:relative; }
+.cal-day.today-dot::after { content:''; position:absolute; bottom:2px; left:50%;
+  transform:translateX(-50%); width:4px; height:4px; border-radius:50%; background:#C5593A; }
+.cal-day.week-start.today-dot::after { background:#FFFFFF; }
+.cal-today-btn { display:block; text-align:center; padding:10px;
+  font-size:13px; font-weight:600; color:#C5593A; cursor:pointer;
+  border-top:1px solid #E8E0D0; }
+.cal-today-btn:hover { background:#FAF7F2; }
+
 /* ── FAB ── */
 .fab { position:fixed; bottom:24px; right:20px; width:54px; height:54px; border-radius:50%;
   background:var(--terra); color:white; border:none; font-size:26px; cursor:pointer;
@@ -224,7 +301,10 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
       </div>
       <div class="week-nav">
         <button class="btn btn-outline btn-sm" onclick="changeWeek(-1)">← Anterior</button>
-        <div class="week-label" id="week-label"></div>
+        <div class="week-label" id="week-label" onclick="openCalendar()" style="cursor:pointer" title="Abrir calendario">
+          <span id="week-label-text"></span>
+          <span style="font-size:14px;margin-left:5px;opacity:.6">📆</span>
+        </div>
         <button class="btn btn-outline btn-sm" onclick="changeWeek(1)">Siguiente →</button>
       </div>
       <div id="days-container"></div>
@@ -302,6 +382,7 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('modal-recipe')">Cancelar</button>
+      <button class="btn btn-outline" id="btn-save-as-new" onclick="saveRecipe(true)" style="display:none">Guardar como nueva</button>
       <button class="btn btn-primary" onclick="saveRecipe()">Guardar receta</button>
     </div>
   </div>
@@ -375,6 +456,31 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
     <div class="modal-actions">
       <button class="btn btn-outline btn-full" onclick="closeModal('modal-data')">Cerrar</button>
     </div>
+  </div>
+</div>
+
+<!-- ── CALENDAR OVERLAY ── -->
+<div class="cal-overlay" id="cal-overlay" onclick="if(event.target===this)closeCalendar()">
+  <div class="cal-box">
+    <div class="cal-head">
+      <button class="cal-nav" onclick="calChangeMonth(-1)">‹</button>
+      <span class="cal-month-label" id="cal-month-label"></span>
+      <button class="cal-nav" onclick="calChangeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-today-btn" onclick="calGoToday()">Ir a la semana actual</div>
+  </div>
+</div>
+
+<!-- ── RECIPE PICKER SHEET ── -->
+<div class="picker-overlay" id="picker-overlay">
+  <div class="picker-sheet">
+    <div class="picker-head">
+      <div class="picker-title" id="picker-title">Añadir receta</div>
+      <input type="text" id="picker-search" placeholder="Buscar receta…" oninput="renderPickerList()">
+    </div>
+    <div class="picker-list" id="picker-list"></div>
+    <div class="picker-cancel" onclick="closePicker()">Cancelar</div>
   </div>
 </div>
 
@@ -731,16 +837,46 @@ function dayKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart
 // ═══════════════════════════════════════
 // MENÚ SEMANAL
 // ═══════════════════════════════════════
+
+// Migrate old single-string meals to arrays
+function migrateMeals(){
+  let changed = false;
+  Object.keys(menus).forEach(k=>{
+    if(k.startsWith('extra_')) return;
+    ['lunch','dinner'].forEach(meal=>{
+      const v = menus[k][meal];
+      if(typeof v === 'string'){ menus[k][meal] = [v]; changed = true; }
+    });
+  });
+  if(changed) saveAll();
+}
+
+function getMealIds(key, meal){
+  const v = menus[key]?.[meal];
+  if(!v) return [];
+  return Array.isArray(v) ? v : [v];
+}
+
+function getExtras(weekKey){
+  return Array.isArray(menus['extra_'+weekKey]) ? menus['extra_'+weekKey] : [];
+}
+
 function renderWeek(){
+  migrateMeals();
   const start=getWeekStart(weekOffset);
   const end=new Date(start); end.setDate(end.getDate()+6);
-  document.getElementById('week-label').textContent=`${fmtDate(start)} – ${fmtDate(end)}`;
+  const weekKey=dayKey(start);
+  document.getElementById('week-label-text').textContent=`${fmtDate(start)} – ${fmtDate(end)}`;
   const names=getWeekDayNames(), container=document.getElementById('days-container');
   container.innerHTML='';
   const todayKey=dayKey(new Date());
+
   for(let i=0;i<7;i++){
     const d=new Date(start); d.setDate(d.getDate()+i);
-    const key=dayKey(d), dd=menus[key]||{}, isToday=key===todayKey;
+    const key=dayKey(d), isToday=key===todayKey;
+    const lunchIds=getMealIds(key,'lunch');
+    const dinnerIds=getMealIds(key,'dinner');
+
     const card=document.createElement('div'); card.className='day-card';
     card.innerHTML=`
       <div class="day-header ${isToday?'today':''}">
@@ -749,31 +885,109 @@ function renderWeek(){
       <div class="day-meals">
         <div class="meal-row">
           <span class="meal-label">🍳 Comida</span>
-          ${mealSelect(key,'lunch',dd.lunch)}
-          ${dd.lunch?`<button class="meal-clear" onclick="clearMeal('${key}','lunch')">×</button>`:''}
+          <div class="meal-chips">
+            ${lunchIds.map(rid=>mealChipHTML(key,'lunch',rid)).join('')}
+            <button class="meal-add-btn" onclick="openPicker('${key}','lunch')">+ añadir</button>
+          </div>
         </div>
         <div class="meal-row">
           <span class="meal-label">🌙 Cena</span>
-          ${mealSelect(key,'dinner',dd.dinner)}
-          ${dd.dinner?`<button class="meal-clear" onclick="clearMeal('${key}','dinner')">×</button>`:''}
+          <div class="meal-chips">
+            ${dinnerIds.map(rid=>mealChipHTML(key,'dinner',rid)).join('')}
+            <button class="meal-add-btn" onclick="openPicker('${key}','dinner')">+ añadir</button>
+          </div>
         </div>
       </div>`;
     container.appendChild(card);
   }
+
+  // Extras section
+  const extras=getExtras(weekKey);
+  const extrasCard=document.createElement('div'); extrasCard.className='extras-card';
+  extrasCard.innerHTML=`
+    <div class="extras-header">🍰 Recetas adicionales de la semana</div>
+    <div class="extras-body">
+      <div class="extras-chips" id="extras-chips">
+        ${extras.map(rid=>extraChipHTML(weekKey,rid)).join('')}
+      </div>
+      <button class="meal-add-btn" onclick="openPicker('${weekKey}','extra')">+ añadir receta</button>
+    </div>`;
+  container.appendChild(extrasCard);
 }
-function mealSelect(dk,meal,sel){
-  const opts=recipes.map(r=>`<option value="${r.id}" ${r.id===sel?'selected':''}>${r.name}</option>`).join('');
-  return `<select class="meal-select" style="flex:1" onchange="setMeal('${dk}','${meal}',this.value)">
-    <option value="">— Sin asignar —</option>${opts}</select>`;
+
+function mealChipHTML(key, meal, rid){
+  const r=recipes.find(r=>r.id===rid);
+  if(!r) return '';
+  return `<span class="meal-chip">${r.name}<button class="rm" onclick="removeFromMeal('${key}','${meal}','${rid}')">×</button></span>`;
 }
-function setMeal(key,meal,rid){
+
+function extraChipHTML(weekKey, rid){
+  const r=recipes.find(r=>r.id===rid);
+  if(!r) return '';
+  return `<span class="extra-chip">${r.name}<button class="rm" onclick="removeExtra('${weekKey}','${rid}')">×</button></span>`;
+}
+
+function removeFromMeal(key, meal, rid){
+  if(!menus[key]) return;
+  const arr=getMealIds(key,meal).filter(id=>id!==rid);
+  if(arr.length) menus[key][meal]=arr; else delete menus[key][meal];
+  saveAll(); renderWeek();
+}
+
+function removeExtra(weekKey, rid){
+  menus['extra_'+weekKey]=(getExtras(weekKey)).filter(id=>id!==rid);
+  saveAll(); renderWeek();
+}
+
+// ── RECIPE PICKER ──
+let pickerContext = null; // {key, meal}
+
+function openPicker(key, meal){
+  pickerContext={key, meal};
+  const isExtra = meal==='extra';
+  document.getElementById('picker-title').textContent =
+    isExtra ? 'Añadir receta adicional' :
+    meal==='lunch' ? 'Añadir a comida' : 'Añadir a cena';
+  document.getElementById('picker-search').value='';
+  renderPickerList();
+  document.getElementById('picker-overlay').classList.add('open');
+}
+
+function closePicker(){
+  document.getElementById('picker-overlay').classList.remove('open');
+  pickerContext=null;
+}
+
+function renderPickerList(){
+  const q=document.getElementById('picker-search').value.trim().toLowerCase();
+  const filtered=q ? recipes.filter(r=>r.name.toLowerCase().includes(q)) : recipes;
+  const el=document.getElementById('picker-list');
+  if(!filtered.length){
+    el.innerHTML=`<div style="padding:20px;text-align:center;color:#6B5B45;font-size:14px">Sin resultados</div>`;
+    return;
+  }
+  el.innerHTML=filtered.map(r=>{
+    const tipo=TIPOS[r.tipo||'otro'];
+    return `<div class="picker-item" onclick="pickRecipe('${r.id}')">
+      <span class="picker-item-name">${r.name}</span>
+      <span class="picker-item-tipo" style="color:${tipo.color}">${tipo.label}</span>
+    </div>`;
+  }).join('');
+}
+
+function pickRecipe(rid){
+  if(!pickerContext) return;
+  const {key, meal}=pickerContext;
   if(!menus[key]) menus[key]={};
-  if(rid) menus[key][meal]=rid; else delete menus[key][meal];
-  saveAll(); renderWeek();
-}
-function clearMeal(key,meal){
-  if(menus[key]) delete menus[key][meal];
-  saveAll(); renderWeek();
+
+  if(meal==='extra'){
+    const arr=getExtras(key);
+    if(!arr.includes(rid)) menus['extra_'+key]=[...arr, rid];
+  } else {
+    const arr=getMealIds(key,meal);
+    if(!arr.includes(rid)) menus[key][meal]=[...arr, rid];
+  }
+  saveAll(); closePicker(); renderWeek();
 }
 
 // ═══════════════════════════════════════
@@ -781,22 +995,39 @@ function clearMeal(key,meal){
 // ═══════════════════════════════════════
 function generateShoppingList(){
   const start=getWeekStart(weekOffset);
-  // Build ingredient map: ingId → { ingObj, sources[] }
+  const weekKey=dayKey(start);
   const ingMap={};
+
+  function addRecipe(rid){
+    const recipe=recipes.find(r=>r.id===rid);
+    if(!recipe) return;
+    (recipe.ingredients||[]).forEach(iid=>{
+      // Try ID match first (new format), then name match (old text format)
+      let ing = catalogue.find(c=>c.id===iid);
+      if(!ing) ing = catalogue.find(c=>c.name.toLowerCase()===String(iid).toLowerCase());
+      if(ing){
+        if(!ingMap[ing.id]) ingMap[ing.id]={ing, sources:[]};
+        if(!ingMap[ing.id].sources.includes(recipe.name))
+          ingMap[ing.id].sources.push(recipe.name);
+      } else {
+        // Ingredient not in catalogue: add as free text with cat 'otro'
+        const freeKey='free_'+String(iid).replace(/\s+/g,'_');
+        if(!ingMap[freeKey]) ingMap[freeKey]={ing:{id:freeKey, name:String(iid), cat:'otro'}, sources:[]};
+        if(!ingMap[freeKey].sources.includes(recipe.name))
+          ingMap[freeKey].sources.push(recipe.name);
+      }
+    });
+  }
+
   for(let i=0;i<7;i++){
     const d=new Date(start); d.setDate(d.getDate()+i);
     const dayData=menus[dayKey(d)]||{};
-    ['lunch','dinner'].forEach(meal=>{
-      const recipe=recipes.find(r=>r.id===dayData[meal]);
-      if(!recipe) return;
-      (recipe.ingredients||[]).forEach(iid=>{
-        const ing=catalogue.find(c=>c.id===iid);
-        if(!ing) return;
-        if(!ingMap[iid]) ingMap[iid]={ing, sources:[]};
-        ingMap[iid].sources.push(recipe.name);
-      });
-    });
+    getMealIds(dayKey(d),'lunch').forEach(addRecipe);
+    getMealIds(dayKey(d),'dinner').forEach(addRecipe);
   }
+  // Extras
+  getExtras(weekKey).forEach(addRecipe);
+
   const manualItems=shopList.filter(i=>i.manual);
   const oldChecked={};
   shopList.filter(i=>!i.manual).forEach(i=>{ if(i.checked) oldChecked[i.id]=true; });
@@ -901,6 +1132,7 @@ function renderRecipes(){
           <span class="tag" style="background:${tipo.bg};color:${tipo.color}">${tipo.label}</span>
         </div>
         <div class="recipe-actions">
+          <button class="btn-icon" style="font-size:18px;padding:6px 8px" onclick="shareRecipe('${r.id}')">📤</button>
           <button class="btn-icon" style="font-size:18px;padding:6px 8px" onclick="openRecipeModal('${r.id}')">✏️</button>
           <button class="btn-icon" style="font-size:18px;padding:6px 8px;color:#C5593A" onclick="deleteRecipe('${r.id}')">✕</button>
         </div>
@@ -925,6 +1157,74 @@ function renderRecipes(){
       </div>` : ''}
     </div>`;
   }).join('');
+}
+
+function shareRecipe(id){
+  const r = recipes.find(r=>r.id===id);
+  if(!r) return;
+
+  const tipo = TIPOS[r.tipo||'otro'];
+
+  // Build ingredient list grouped by category
+  const bycat = {};
+  (r.ingredients||[]).forEach(iid=>{
+    const ing = catalogue.find(c=>c.id===iid);
+    const name = ing ? ing.name : String(iid);
+    const cat  = ing ? (ing.cat||'otro') : 'otro';
+    (bycat[cat] = bycat[cat]||[]).push(name);
+  });
+
+  const catOrder = Object.keys(ING_CATS);
+  let ingsText = '';
+  catOrder.forEach(cat=>{
+    if(!bycat[cat]?.length) return;
+    ingsText += `\n${ING_CATS[cat].label}\n`;
+    bycat[cat].forEach(n=>{ ingsText += `  · ${n}\n`; });
+  });
+
+  const lines = [
+    `${tipo.label}  ${r.name}`,
+    `${'─'.repeat(r.name.length + 6)}`,
+  ];
+
+  if(ingsText){
+    lines.push('');
+    lines.push('🧂 INGREDIENTES');
+    lines.push(ingsText.trimEnd());
+  }
+
+  if(r.notes){
+    lines.push('');
+    lines.push('🍳 PREPARACIÓN');
+    lines.push(r.notes.trim());
+  }
+
+  lines.push('');
+  lines.push('— Compartido desde MenuSemanal 🍽');
+
+  const text = lines.join('\n');
+
+  if(navigator.share){
+    navigator.share({ title: r.name, text }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(text).then(()=>{
+      showToast('Receta copiada al portapapeles ✓');
+    }).catch(()=>{ showToast('No se pudo copiar'); });
+  }
+}
+
+function showToast(msg){
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', bottom:'90px', left:'50%', transform:'translateX(-50%)',
+    background:'#2C2416', color:'#FAF7F2', padding:'10px 18px',
+    borderRadius:'20px', fontSize:'13px', fontWeight:'600',
+    zIndex:'9999', whiteSpace:'nowrap', boxShadow:'0 4px 12px rgba(0,0,0,.2)',
+    animation:'fadeIn .2s ease'
+  });
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2400);
 }
 
 function toggleIng(id,el){
@@ -957,6 +1257,7 @@ function openRecipeModal(id=null){
     document.getElementById('recipe-notes').value='';
   }
   renderIngPicker(); renderSelectedIngs();
+  document.getElementById('btn-save-as-new').style.display = id ? 'flex' : 'none';
   document.getElementById('modal-recipe').classList.add('open');
 }
 
@@ -1003,17 +1304,24 @@ function toggleIngSelection(iid){
   renderIngPicker(); renderSelectedIngs();
 }
 
-function saveRecipe(){
+function saveRecipe(asNew=false){
   const name=document.getElementById('recipe-name').value.trim();
   if(!name){ alert('Ponle un nombre al plato'); return; }
   const tipo=document.getElementById('recipe-tipo').value;
   const notes=document.getElementById('recipe-notes').value.trim();
-  const editId=document.getElementById('recipe-edit-id').value;
+  const editId = asNew ? null : document.getElementById('recipe-edit-id').value;
+  const catOrder = Object.keys(ING_CATS);
+  const sortedIngs = [...selectedIngIds].sort((a,b)=>{
+    const catA = catOrder.indexOf(catalogue.find(c=>c.id===a)?.cat || 'otro');
+    const catB = catOrder.indexOf(catalogue.find(c=>c.id===b)?.cat || 'otro');
+    return catA - catB;
+  });
+
   if(editId){
     const r=recipes.find(r=>r.id===editId);
-    if(r){ r.name=name; r.tipo=tipo; r.ingredients=[...selectedIngIds]; r.notes=notes; }
+    if(r){ r.name=name; r.tipo=tipo; r.ingredients=sortedIngs; r.notes=notes; }
   } else {
-    recipes.push({id:'r_'+Date.now(), name, tipo, ingredients:[...selectedIngIds], notes});
+    recipes.push({id:'r_'+Date.now(), name, tipo, ingredients:sortedIngs, notes});
   }
   saveAll(); closeModal('modal-recipe'); renderRecipes(); renderWeek();
 }
@@ -1086,6 +1394,122 @@ function deleteIngredient(id){
   catalogue=catalogue.filter(i=>i.id!==id);
   recipes.forEach(r=>{ r.ingredients=(r.ingredients||[]).filter(iid=>iid!==id); });
   saveAll(); renderCatalogue();
+}
+
+// ═══════════════════════════════════════
+// CALENDAR PICKER
+// ═══════════════════════════════════════
+const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+  'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DOW_ES = ['L','M','X','J','V','S','D'];
+
+let calYear, calMonth;
+
+function openCalendar(){
+  const ws = getWeekStart(weekOffset);
+  calYear = ws.getFullYear();
+  calMonth = ws.getMonth();
+  renderCalendar();
+  document.getElementById('cal-overlay').classList.add('open');
+}
+
+function closeCalendar(){
+  document.getElementById('cal-overlay').classList.remove('open');
+}
+
+function calChangeMonth(dir){
+  calMonth += dir;
+  if(calMonth > 11){ calMonth=0; calYear++; }
+  if(calMonth < 0){ calMonth=11; calYear--; }
+  renderCalendar();
+}
+
+function calGoToday(){
+  weekOffset = 0;
+  closeCalendar();
+  renderWeek();
+}
+
+function renderCalendar(){
+  document.getElementById('cal-month-label').textContent =
+    `${MONTHS_ES[calMonth]} ${calYear}`;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const todayStr = dayKey(today);
+
+  // Current displayed week bounds
+  const ws = getWeekStart(weekOffset);
+  const we = new Date(ws); we.setDate(we.getDate()+6);
+  const wsStr = dayKey(ws), weStr = dayKey(we);
+
+  // First day of month (Monday-anchored grid)
+  const firstDay = new Date(calYear, calMonth, 1);
+  let startDow = firstDay.getDay(); // 0=Sun
+  startDow = startDow === 0 ? 6 : startDow - 1; // Mon=0
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
+
+  let html = DOW_ES.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+
+  // Prev month padding
+  for(let i=startDow-1; i>=0; i--){
+    const d = new Date(calYear, calMonth-1, daysInPrev-i);
+    html += calDayHTML(d, todayStr, wsStr, weStr, true);
+  }
+  // Current month
+  for(let i=1; i<=daysInMonth; i++){
+    const d = new Date(calYear, calMonth, i);
+    html += calDayHTML(d, todayStr, wsStr, weStr, false);
+  }
+  // Next month padding
+  const total = startDow + daysInMonth;
+  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for(let i=1; i<=remaining; i++){
+    const d = new Date(calYear, calMonth+1, i);
+    html += calDayHTML(d, todayStr, wsStr, weStr, true);
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+function calDayHTML(d, todayStr, wsStr, weStr, otherMonth){
+  const dStr = dayKey(d);
+  const isToday = dStr === todayStr;
+  const isStart = dStr === wsStr;
+  const isEnd   = dStr === weStr;
+  const inWeek  = dStr >= wsStr && dStr <= weStr;
+
+  let cls = 'cal-day';
+  if(otherMonth) cls += ' other-month';
+  if(inWeek) cls += ' in-week';
+  if(isStart) cls += ' week-start';
+  if(isEnd) cls += ' week-end';
+  if(isToday) cls += ' today-dot';
+
+  return `<div class="${cls}" onclick="calSelectDay('${dStr}')">${d.getDate()}</div>`;
+}
+
+function calSelectDay(dateStr){
+  // Calculate weekOffset for the week containing this date
+  const clicked = new Date(dateStr);
+  clicked.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  // Find the week start of the clicked date
+  let diff = clicked.getDay() - weekStartDay;
+  if(diff < 0) diff += 7;
+  const clickedWeekStart = new Date(clicked);
+  clickedWeekStart.setDate(clicked.getDate() - diff);
+  // Find current week start (offset 0)
+  let todayDiff = today.getDay() - weekStartDay;
+  if(todayDiff < 0) todayDiff += 7;
+  const thisWeekStart = new Date(today);
+  thisWeekStart.setDate(today.getDate() - todayDiff);
+  // Calculate offset in weeks
+  const msPerWeek = 7*24*60*60*1000;
+  weekOffset = Math.round((clickedWeekStart - thisWeekStart) / msPerWeek);
+  closeCalendar();
+  renderWeek();
 }
 
 // ═══════════════════════════════════════
