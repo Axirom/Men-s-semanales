@@ -405,6 +405,7 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
         <option value="marisco">🦐 Marisco</option>
         <option value="fruta">🍓 Fruta</option>
         <option value="verdura">🥦 Verdura / Hortaliza</option>
+        <option value="hongo">🍄 Hongos / Setas</option>
         <option value="lacteo">🥛 Lácteo</option>
         <option value="huevo">🥚 Huevo</option>
         <option value="pasta">🍝 Pasta / Arroz / Cereal</option>
@@ -494,6 +495,7 @@ const ING_CATS = {
   marisco:   { label:'🦐 Marisco',            color:'#1A5276', bg:'#D6EAF8' },
   fruta:     { label:'🍓 Fruta',              color:'#CB4335', bg:'#FDEDEC' },
   verdura:   { label:'🥦 Verdura',            color:'#1E8449', bg:'#EAFAF1' },
+  hongo:     { label:'🍄 Hongos / Setas',     color:'#6E4C1E', bg:'#F5ECD7' },
   lacteo:    { label:'🥛 Lácteo',             color:'#5D6D7E', bg:'#EBF5FB' },
   huevo:     { label:'🥚 Huevo',              color:'#B7950B', bg:'#FEFDE7' },
   pasta:     { label:'🍝 Pasta / Arroz',      color:'#D4AC0D', bg:'#FEF9E7' },
@@ -645,8 +647,13 @@ function getDefaultIngredients(){
     {id:'i51b',name:'Apio',cat:'verdura'},
     {id:'i51c',name:'Pepino',cat:'verdura'},
     {id:'i51d',name:'Aguacate',cat:'verdura'},
-    {id:'i51e',name:'Champiñones',cat:'verdura'},
-    {id:'i51f',name:'Setas',cat:'verdura'},
+    {id:'i51e',name:'Champiñones',cat:'hongo'},
+    {id:'i51f',name:'Setas',cat:'hongo'},
+    {id:'i51f2',name:'Boletus',cat:'hongo'},
+    {id:'i51f3',name:'Shiitake',cat:'hongo'},
+    {id:'i51f4',name:'Níscalos',cat:'hongo'},
+    {id:'i51f5',name:'Trufas',cat:'hongo'},
+    {id:'i51f6',name:'Portobello',cat:'hongo'},
     {id:'i51g',name:'Alcachofas',cat:'verdura'},
     {id:'i51h',name:'Espárragos',cat:'verdura'},
     {id:'i51i',name:'Judías verdes',cat:'verdura'},
