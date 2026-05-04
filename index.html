@@ -124,9 +124,22 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 .item-src { font-size:12px; color:var(--brown-mid); margin-top:1px; }
 .item-del { background:none; border:none; color:var(--brown-mid); font-size:16px; cursor:pointer; padding:4px; opacity:.5; }
 .item-del:hover { opacity:1; color:var(--terra); }
-.add-manual { display:flex; gap:8px; margin-top:12px; }
+.add-manual { display:flex; gap:8px; margin-top:12px; align-items:flex-start; }
 .add-manual input { flex:1; }
-
+.add-manual-wrap { flex:1; position:relative; }
+.manual-suggestions { position:absolute; left:0; right:0; top:calc(100% + 4px);
+  background:var(--white); border:1.5px solid var(--terra-light); border-radius:var(--rs);
+  box-shadow:0 4px 16px rgba(44,36,22,.13); z-index:500;
+  max-height:220px; overflow-y:auto; display:none; }
+.manual-suggestions.open { display:block; }
+.manual-sug-item { display:flex; align-items:center; justify-content:space-between;
+  padding:10px 13px; border-bottom:1px solid var(--sand); cursor:pointer;
+  font-size:14px; color:var(--brown); }
+.manual-sug-item:last-child { border-bottom:none; }
+.manual-sug-item:active { background:var(--cream); }
+.manual-sug-item .sug-cat { font-size:11px; color:var(--brown-mid); flex-shrink:0; margin-left:8px; }
+.manual-sug-new { color:var(--olive); font-style:italic; }
+.manual-sug-new .sug-cat { color:var(--olive); }
 /* ── RECIPE CARDS ── */
 .recipe-card { background:var(--white); border-radius:var(--r); box-shadow:var(--shadow);
   padding:14px 16px; margin-bottom:10px; border-left:4px solid var(--terra); }
@@ -315,17 +328,28 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
     <div id="section-lista" class="section">
       <div class="shop-header">
         <h2>Lista de la compra</h2>
-        <button class="btn btn-sm btn-outline" onclick="clearChecked()">Borrar tachados</button>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-outline" onclick="shareShopList()" title="Compartir lista">📤</button>
+          <button class="btn btn-sm btn-outline" onclick="exportShopList()" title="Exportar como archivo">📁</button>
+          <button class="btn btn-sm btn-outline" onclick="clearChecked()">Borrar tachados</button>
+        </div>
       </div>
       <div id="shop-content"></div>
       <div class="add-manual">
-        <input type="text" id="manual-item" placeholder="Añadir elemento manualmente…" onkeydown="if(event.key==='Enter')addManual()">
+        <div class="add-manual-wrap">
+          <input type="text" id="manual-item" placeholder="Añadir ingrediente…"
+            oninput="renderManualSuggestions()"
+            onkeydown="handleManualKey(event)"
+            autocomplete="off">
+          <div class="manual-suggestions" id="manual-suggestions"></div>
+        </div>
         <button class="btn btn-primary" onclick="addManual()">+</button>
       </div>
     </div>
 
     <!-- ── RECETARIO ── -->
     <div id="section-recetario" class="section">
+      <input type="text" id="recipe-search" placeholder="🔍 Buscar receta…" oninput="renderRecipes()" style="margin-bottom:12px">
       <div class="chips" id="recipe-filters"></div>
       <div id="recipes-list"></div>
     </div>
@@ -359,11 +383,13 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
         <option value="pasta">🍝 Pasta</option>
         <option value="arroz">🍚 Arroz</option>
         <option value="verdura">🥦 Verdura</option>
+        <option value="ensalada">🥗 Ensalada</option>
         <option value="legumbre">🫘 Legumbres</option>
         <option value="huevo">🥚 Huevo</option>
         <option value="sopa">🍲 Sopa / Crema</option>
         <option value="cocido">🥘 Cocido</option>
         <option value="tapas">🫓 Tapas</option>
+        <option value="reposteria">🧁 Repostería</option>
         <option value="otro">🍽 Otro</option>
       </select>
     </div>
@@ -485,6 +511,49 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
   </div>
 </div>
 
+<!-- ── MODAL GENERAR LISTA ── -->
+<div class="modal-overlay" id="modal-shopgen">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🛒 Ya hay elementos en la lista</div>
+    <p style="font-size:14px;color:var(--brown-mid);line-height:1.6;margin-bottom:20px">
+      La lista actual tiene elementos. ¿Qué quieres hacer con ellos?
+    </p>
+    <button class="btn btn-primary btn-full" onclick="_doGenerateShoppingList('replace')" style="margin-bottom:10px">
+      🗑 Reemplazar lista — empezar desde cero
+    </button>
+    <button class="btn btn-olive btn-full" onclick="_doGenerateShoppingList('merge')">
+      ➕ Combinar — añadir al carrito actual
+    </button>
+    <div class="modal-actions" style="margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-shopgen')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── MODAL IMPORTAR LISTA ── -->
+<div class="modal-overlay" id="modal-import-lista">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📥 Importar lista de la compra</div>
+    <p style="font-size:14px;color:var(--brown-mid);line-height:1.6;margin-bottom:8px">
+      Se ha detectado un archivo de lista de la compra de Umami.
+    </p>
+    <p id="import-lista-info" style="font-size:13px;color:var(--brown);margin-bottom:20px;font-weight:600"></p>
+    <button class="btn btn-primary btn-full" onclick="_confirmImportLista('replace')" style="margin-bottom:10px">
+      🗑 Reemplazar mi lista actual
+    </button>
+    <button class="btn btn-olive btn-full" onclick="_confirmImportLista('merge')">
+      ➕ Combinar con mi lista actual
+    </button>
+    <div class="modal-actions" style="margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-import-lista')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
 <script>
 // ═══════════════════════════════════════
 // DATA
@@ -515,17 +584,19 @@ const ING_CATS = {
 };
 
 const TIPOS = {
-  carne:   { label:'🥩 Carne',       color:'#C0392B', bg:'#FDECEA' },
-  pescado: { label:'🐟 Pescado',     color:'#2471A3', bg:'#EAF4FB' },
-  pasta:   { label:'🍝 Pasta',       color:'#D4AC0D', bg:'#FEF9E7' },
-  arroz:   { label:'🍚 Arroz',       color:'#B7950B', bg:'#FEF5E4' },
-  verdura: { label:'🥦 Verdura',     color:'#1E8449', bg:'#EAFAF1' },
-  legumbre:{ label:'🫘 Legumbres',   color:'#784212', bg:'#FDF2E9' },
-  huevo:   { label:'🥚 Huevo',       color:'#9A7D0A', bg:'#FEFDE7' },
-  sopa:    { label:'🍲 Sopa/Crema',  color:'#884EA0', bg:'#F5EEF8' },
-  cocido:  { label:'🥘 Cocido',      color:'#A04000', bg:'#FDEBD0' },
-  tapas:   { label:'🫓 Tapas',       color:'#117A65', bg:'#E8F8F5' },
-  otro:    { label:'🍽 Otro',        color:'#6B5B45', bg:'#F5F0EA' },
+  carne:      { label:'🥩 Carne',        color:'#C0392B', bg:'#FDECEA' },
+  pescado:    { label:'🐟 Pescado',      color:'#2471A3', bg:'#EAF4FB' },
+  pasta:      { label:'🍝 Pasta',        color:'#D4AC0D', bg:'#FEF9E7' },
+  arroz:      { label:'🍚 Arroz',        color:'#B7950B', bg:'#FEF5E4' },
+  verdura:    { label:'🥦 Verdura',      color:'#1E8449', bg:'#EAFAF1' },
+  ensalada:   { label:'🥗 Ensalada',     color:'#27AE60', bg:'#E9F7EF' },
+  legumbre:   { label:'🫘 Legumbres',    color:'#784212', bg:'#FDF2E9' },
+  huevo:      { label:'🥚 Huevo',        color:'#9A7D0A', bg:'#FEFDE7' },
+  sopa:       { label:'🍲 Sopa/Crema',   color:'#884EA0', bg:'#F5EEF8' },
+  cocido:     { label:'🥘 Cocido',       color:'#A04000', bg:'#FDEBD0' },
+  tapas:      { label:'🫓 Tapas',        color:'#117A65', bg:'#E8F8F5' },
+  reposteria: { label:'🧁 Repostería',   color:'#C06B2A', bg:'#FDF0E0' },
+  otro:       { label:'🍽 Otro',         color:'#6B5B45', bg:'#F5F0EA' },
 };
 
 const ALL_DAYS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -1001,6 +1072,13 @@ function pickRecipe(rid){
 // LISTA DE LA COMPRA
 // ═══════════════════════════════════════
 function generateShoppingList(){
+  if(shopList.length){
+    openModal('modal-shopgen'); return;
+  }
+  _doGenerateShoppingList('replace');
+}
+
+function _doGenerateShoppingList(mode){
   const start=getWeekStart(weekOffset);
   const weekKey=dayKey(start);
   const ingMap={};
@@ -1009,7 +1087,6 @@ function generateShoppingList(){
     const recipe=recipes.find(r=>r.id===rid);
     if(!recipe) return;
     (recipe.ingredients||[]).forEach(iid=>{
-      // Try ID match first (new format), then name match (old text format)
       let ing = catalogue.find(c=>c.id===iid);
       if(!ing) ing = catalogue.find(c=>c.name.toLowerCase()===String(iid).toLowerCase());
       if(ing){
@@ -1017,7 +1094,6 @@ function generateShoppingList(){
         if(!ingMap[ing.id].sources.includes(recipe.name))
           ingMap[ing.id].sources.push(recipe.name);
       } else {
-        // Ingredient not in catalogue: add as free text with cat 'otro'
         const freeKey='free_'+String(iid).replace(/\s+/g,'_');
         if(!ingMap[freeKey]) ingMap[freeKey]={ing:{id:freeKey, name:String(iid), cat:'otro'}, sources:[]};
         if(!ingMap[freeKey].sources.includes(recipe.name))
@@ -1028,28 +1104,34 @@ function generateShoppingList(){
 
   for(let i=0;i<7;i++){
     const d=new Date(start); d.setDate(d.getDate()+i);
-    const dayData=menus[dayKey(d)]||{};
     getMealIds(dayKey(d),'lunch').forEach(addRecipe);
     getMealIds(dayKey(d),'dinner').forEach(addRecipe);
   }
-  // Extras
   getExtras(weekKey).forEach(addRecipe);
 
-  const manualItems=shopList.filter(i=>i.manual);
-  const oldChecked={};
-  shopList.filter(i=>!i.manual).forEach(i=>{ if(i.checked) oldChecked[i.id]=true; });
-
-  const autoItems=Object.values(ingMap).map(({ing,sources})=>({
+  const newAutoItems=Object.values(ingMap).map(({ing,sources})=>({
     id:'auto_'+ing.id, name:ing.name, cat:ing.cat,
-    checked:!!oldChecked['auto_'+ing.id],
-    manual:false,
+    checked:false, manual:false,
     source:[...new Set(sources)].join(', ')
   }));
 
-  shopList=[...autoItems,...manualItems];
-  saveAll(); switchTab('lista');
-}
+  if(mode==='replace'){
+    const manualItems=shopList.filter(i=>i.manual);
+    shopList=[...newAutoItems, ...manualItems];
+  } else {
+    newAutoItems.forEach(item=>{
+      const existing=shopList.find(i=>i.id===item.id);
+      if(existing){
+        const srcSet=new Set([...existing.source.split(', ').filter(Boolean), ...item.source.split(', ').filter(Boolean)]);
+        existing.source=[...srcSet].join(', ');
+      } else {
+        shopList.push(item);
+      }
+    });
+  }
 
+  saveAll(); closeModal('modal-shopgen'); switchTab('lista');
+}
 function renderShop(){
   const el=document.getElementById('shop-content');
   if(!shopList.length){
@@ -1094,11 +1176,96 @@ function shopItemHTML(item){
 function toggleItem(id){ const i=shopList.find(i=>i.id===id); if(i){i.checked=!i.checked; saveAll(); renderShop();} }
 function deleteItem(id){ shopList=shopList.filter(i=>i.id!==id); saveAll(); renderShop(); }
 function clearChecked(){ shopList=shopList.filter(i=>!i.checked); saveAll(); renderShop(); }
+function renderManualSuggestions(){
+  const el=document.getElementById('manual-item');
+  const box=document.getElementById('manual-suggestions');
+  const q=normalize(el.value.trim());
+  if(!q){ box.classList.remove('open'); box.innerHTML=''; return; }
+
+  const matches=catalogue
+    .filter(i=>normalize(i.name).includes(q))
+    .sort((a,b)=>{
+      // Exact match first, then starts-with, then contains
+      const na=normalize(a.name), nb=normalize(b.name);
+      if(na===q) return -1; if(nb===q) return 1;
+      if(na.startsWith(q)&&!nb.startsWith(q)) return -1;
+      if(nb.startsWith(q)&&!na.startsWith(q)) return 1;
+      return na.localeCompare(nb);
+    })
+    .slice(0,8);
+
+  let html='';
+  matches.forEach(ing=>{
+    const catInfo=ING_CATS[ing.cat]||ING_CATS.otro;
+    const alreadyIn=!!shopList.find(i=>i.id==='auto_'+ing.id);
+    html+=`<div class="manual-sug-item" onmousedown="pickManualSuggestion('${ing.id}')">
+      <span>${ing.name}${alreadyIn?' <span style="font-size:11px;color:var(--olive)">✓ en lista</span>':''}</span>
+      <span class="sug-cat">${catInfo.label}</span>
+    </div>`;
+  });
+
+  // "Añadir como nuevo" row if text doesn't match exactly
+  const exactMatch=catalogue.find(i=>normalize(i.name)===q);
+  if(!exactMatch){
+    html+=`<div class="manual-sug-item manual-sug-new" onmousedown="addManual()">
+      <span>➕ Añadir «${el.value.trim()}»</span>
+      <span class="sug-cat">sin categoría</span>
+    </div>`;
+  }
+
+  if(html){ box.innerHTML=html; box.classList.add('open'); }
+  else { box.classList.remove('open'); box.innerHTML=''; }
+}
+
+function pickManualSuggestion(ingId){
+  const match=catalogue.find(i=>i.id===ingId);
+  if(!match) return;
+  const autoId='auto_'+match.id;
+  if(shopList.find(i=>i.id===autoId)){
+    showToast(`"${match.name}" ya está en la lista`);
+  } else {
+    shopList.push({id:autoId, name:match.name, cat:match.cat, checked:false, manual:false, source:'Añadido manualmente'});
+    saveAll(); renderShop();
+  }
+  closeManualSuggestions();
+}
+
+function closeManualSuggestions(){
+  const el=document.getElementById('manual-item');
+  const box=document.getElementById('manual-suggestions');
+  el.value=''; box.classList.remove('open'); box.innerHTML='';
+}
+
+function handleManualKey(e){
+  if(e.key==='Enter'){ addManual(); }
+  if(e.key==='Escape'){ closeManualSuggestions(); }
+}
+
+// Close suggestions when clicking outside
+document.addEventListener('click', e=>{
+  const wrap=document.querySelector('.add-manual-wrap');
+  if(wrap && !wrap.contains(e.target)){
+    const box=document.getElementById('manual-suggestions');
+    if(box){ box.classList.remove('open'); }
+  }
+});
+
 function addManual(){
   const el=document.getElementById('manual-item'), v=el.value.trim();
   if(!v) return;
-  shopList.push({id:'manual_'+Date.now(),name:v,cat:'otro',checked:false,manual:true,source:''});
-  el.value=''; saveAll(); renderShop();
+  // Look up catalogue (accent-insensitive)
+  const match=catalogue.find(i=>normalize(i.name)===normalize(v));
+  if(match){
+    const autoId='auto_'+match.id;
+    if(shopList.find(i=>i.id===autoId)){
+      showToast(`"${match.name}" ya está en la lista`);
+      closeManualSuggestions(); return;
+    }
+    shopList.push({id:autoId, name:match.name, cat:match.cat, checked:false, manual:false, source:'Añadido manualmente'});
+  } else {
+    shopList.push({id:'manual_'+Date.now(), name:v, cat:'otro', checked:false, manual:true, source:''});
+  }
+  closeManualSuggestions(); saveAll(); renderShop();
 }
 
 // ═══════════════════════════════════════
@@ -1117,7 +1284,9 @@ function setRecipeFilter(t){ activeRecipeFilter=t; renderRecipes(); }
 function renderRecipes(){
   renderFilterChips();
   const el=document.getElementById('recipes-list');
-  const filtered=activeRecipeFilter==='all' ? recipes : recipes.filter(r=>(r.tipo||'otro')===activeRecipeFilter);
+  const q=normalize((document.getElementById('recipe-search')?.value||'').trim());
+  let filtered=activeRecipeFilter==='all' ? recipes : recipes.filter(r=>(r.tipo||'otro')===activeRecipeFilter);
+  if(q) filtered=filtered.filter(r=>normalize(r.name).includes(q));
   if(!recipes.length){
     el.innerHTML=`<div class="empty"><div class="ei">📖</div><p>Sin recetas.<br>Pulsa <strong>+</strong> para añadir la primera.</p></div>`;
     return;
@@ -1189,8 +1358,9 @@ function shareRecipe(id){
     bycat[cat].forEach(n=>{ ingsText += `  · ${n}\n`; });
   });
 
+  const tipoEmoji = tipo.label.split(' ')[0];
   const lines = [
-    `${tipo.label}  ${r.name}`,
+    `${tipoEmoji}  ${r.name}`,
     `${'─'.repeat(r.name.length + 6)}`,
   ];
 
@@ -1293,6 +1463,7 @@ function renderIngPicker(){
   const visible=q ? catalogue.filter(i=>normalize(i.name).includes(q)) : catalogue;
   const byCat={};
   visible.forEach(i=>{ (byCat[i.cat]=byCat[i.cat]||[]).push(i); });
+  Object.keys(byCat).forEach(cat=>{ byCat[cat].sort((a,b)=>normalize(a.name).localeCompare(normalize(b.name))); });
   let html='';
   Object.keys(ING_CATS).forEach(cat=>{
     if(!byCat[cat]?.length) return;
@@ -1322,6 +1493,11 @@ function saveRecipe(asNew=false){
   const tipo=document.getElementById('recipe-tipo').value;
   const notes=document.getElementById('recipe-notes').value.trim();
   const editId = asNew ? null : document.getElementById('recipe-edit-id').value;
+  // Duplicate check: only for new recipes or "save as new"
+  if(!editId){
+    const exists=recipes.some(r=>normalize(r.name)===normalize(name));
+    if(exists){ alert(`Ya existe una receta llamada "${name}".`); return; }
+  }
   const catOrder = Object.keys(ING_CATS);
   const sortedIngs = [...selectedIngIds].sort((a,b)=>{
     const catA = catOrder.indexOf(catalogue.find(c=>c.id===a)?.cat || 'otro');
@@ -1370,6 +1546,7 @@ function renderCatalogue(){
   }
   const byCat={};
   filtered.forEach(i=>{ (byCat[i.cat]=byCat[i.cat]||[]).push(i); });
+  Object.keys(byCat).forEach(cat=>{ byCat[cat].sort((a,b)=>normalize(a.name).localeCompare(normalize(b.name))); });
   let html='';
   Object.keys(ING_CATS).forEach(cat=>{
     if(!byCat[cat]?.length) return;
@@ -1398,6 +1575,8 @@ function saveIngredient(){
   const name=document.getElementById('ing-name').value.trim();
   if(!name){ alert('Escribe un nombre'); return; }
   const cat=document.getElementById('ing-cat-select').value;
+  const exists=catalogue.some(i=>normalize(i.name)===normalize(name));
+  if(exists){ alert(`"${name}" ya existe en el catálogo.`); return; }
   catalogue.push({id:'c_'+Date.now(), name, cat});
   saveAll(); closeModal('modal-ing'); renderCatalogue();
 }
@@ -1564,6 +1743,16 @@ function importData(input){
   reader.onload = e => {
     try {
       const data = JSON.parse(e.target.result);
+      // Detect lista-only file
+      if(data.type==='umami-lista'){
+        _pendingListaData=data;
+        const n=data.items?.length||0;
+        document.getElementById('import-lista-info').textContent=`${n} elemento${n!==1?'s':''} en el archivo.`;
+        input.value='';
+        closeModal('modal-data');
+        openModal('modal-import-lista');
+        return;
+      }
       if(!data.catalogue || !data.recipes){
         status.innerHTML = '<span style="color:#C5593A">❌ Fichero no válido o incompleto.</span>';
         return;
@@ -1586,6 +1775,83 @@ function importData(input){
     input.value = '';
   };
   reader.readAsText(file);
+}
+
+
+// ═══════════════════════════════════════
+// COMPARTIR / EXPORTAR / IMPORTAR LISTA
+// ═══════════════════════════════════════
+function shareShopList(){
+  if(!shopList.length){ showToast('La lista está vacía'); return; }
+
+  const auto=shopList.filter(i=>!i.manual);
+  const manual=shopList.filter(i=>i.manual);
+  const catOrder=Object.keys(ING_CATS);
+  const byCat={};
+  auto.forEach(item=>{ const c=item.cat||'otro'; (byCat[c]=byCat[c]||[]).push(item); });
+
+  const date=new Date().toLocaleDateString('es-ES',{day:'numeric',month:'long'});
+  const lines=[`🛒 Lista de la compra — ${date}`, ''];
+
+  catOrder.forEach(cat=>{
+    if(!byCat[cat]?.length) return;
+    lines.push(ING_CATS[cat].label);
+    byCat[cat].forEach(i=>{ lines.push(`  ${i.checked?'✓':'-'} ${i.name}`); });
+    lines.push('');
+  });
+  if(manual.length){
+    lines.push('➕ Otros');
+    manual.forEach(i=>{ lines.push(`  ${i.checked?'✓':'-'} ${i.name}`); });
+    lines.push('');
+  }
+  lines.push('— Compartido desde Umami 🍽');
+
+  const text=lines.join('\n');
+  if(navigator.share){
+    navigator.share({title:'Lista de la compra', text}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(text).then(()=>showToast('Lista copiada al portapapeles ✓')).catch(()=>showToast('No se pudo copiar'));
+  }
+}
+
+function exportShopList(){
+  if(!shopList.length){ showToast('La lista está vacía'); return; }
+  const items=shopList.map(i=>({
+    name:i.name, cat:i.cat||'otro',
+    checked:i.checked||false,
+    manual:i.manual||false,
+    source:i.source||''
+  }));
+  const data={ type:'umami-lista', version:1, exportedAt:new Date().toISOString(), items };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=new Date().toISOString().slice(0,10);
+  a.href=url; a.download=`umami-lista-${date}.json`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+let _pendingListaData=null;
+
+function _confirmImportLista(mode){
+  if(!_pendingListaData) return;
+  const incoming=_pendingListaData.items||[];
+  if(mode==='replace'){
+    shopList=incoming.map(i=>({...i, id:(i.manual?'manual_':'auto_')+normalize(i.name).replace(/\s+/g,'_')+'_'+Date.now()}));
+  } else {
+    incoming.forEach(item=>{
+      const key=normalize(item.name);
+      const exists=shopList.find(i=>normalize(i.name)===key);
+      if(!exists){
+        shopList.push({...item, id:(item.manual?'manual_':'auto_')+key.replace(/\s+/g,'_')+'_'+Date.now()});
+      }
+    });
+  }
+  _pendingListaData=null;
+  saveAll();
+  closeModal('modal-import-lista');
+  switchTab('lista');
+  showToast('Lista importada ✓');
 }
 
 // ═══════════════════════════════════════
