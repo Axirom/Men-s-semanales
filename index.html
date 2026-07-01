@@ -2,9 +2,10 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="color-scheme" content="light only">
 <title>Umami</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,10 +27,11 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; background: #FAF7F2 !important; color: #2C2416 !important;
-  font-family: 'Karla', sans-serif; font-size: 15px; -webkit-font-smoothing: antialiased; }
+  font-family: 'Karla', sans-serif; font-size: 15px; -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility; }
 
 /* ── LAYOUT ── */
-#app { display: flex; flex-direction: column; height: 100dvh; background: #FAF7F2; }
+#app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; background: #FAF7F2; }
 #header { background: #FFFFFF !important; border-bottom: 1.5px solid #E8E0D0; padding: 14px 20px 0; flex-shrink: 0; }
 #header h1 { font-family:'Fraunces',serif; font-size: 22px; font-weight: 700; color: #C5593A !important;
   letter-spacing: -0.5px; margin-bottom: 12px; }
@@ -37,11 +39,14 @@ html, body { height: 100%; background: #FAF7F2 !important; color: #2C2416 !impor
 #nav { display: flex; gap: 2px; }
 .nav-btn { flex: 1; border: none; background: #FFFFFF; padding: 9px 4px;
   font-family:'Karla',sans-serif; font-size: 11.5px; font-weight: 600; color: #6B5B45 !important;
-  cursor: pointer; border-bottom: 2.5px solid transparent; transition: all .2s; letter-spacing: 0.1px; }
+  cursor: pointer; border-bottom: 2.5px solid transparent; transition: all .2s; letter-spacing: 0.1px;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .nav-btn.active { color: #C5593A !important; border-bottom-color: #C5593A; }
-.nav-btn .ni { font-size: 16px; display: block; margin-bottom: 2px; }
+.nav-btn .ni { font-size: 16px; display: block; margin-bottom: 2px; position:relative; }
+.nav-badge { position:absolute; top:-3px; right:-8px; background:#C0392B; color:#fff; font-size:9px;
+  font-weight:700; border-radius:8px; min-width:14px; height:14px; line-height:14px; padding:0 3px; }
 
-#content { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
+#content { flex: 1; overflow-y: auto; padding: 16px; overscroll-behavior-y: contain; }
 .section { display: none; animation: fadeIn .22s ease; }
 .section.active { display: block; }
 @keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
@@ -51,7 +56,8 @@ html, body { height: 100%; background: #FAF7F2 !important; color: #2C2416 !impor
 
 /* ── BUTTONS ── */
 .btn { display:inline-flex; align-items:center; gap:6px; border:none; border-radius:var(--rs);
-  padding:10px 16px; font-family:'Karla',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; }
+  padding:10px 16px; font-family:'Karla',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .btn-primary { background:var(--terra); color:white; }
 .btn-primary:active { background:#a8462a; }
 .btn-olive { background:var(--olive); color:white; }
@@ -79,8 +85,13 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 .chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
 .chip { border:1.5px solid var(--sand); background:var(--white); color:var(--brown-mid);
   font-family:'Karla',sans-serif; font-size:12px; font-weight:600;
-  padding:5px 11px; border-radius:20px; cursor:pointer; transition:all .15s; white-space:nowrap; }
+  padding:5px 11px; border-radius:20px; cursor:pointer; transition:all .15s; white-space:nowrap;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .chip.active { background:var(--terra); border-color:var(--terra); color:white; }
+.chip.chip-warn { border-color:#F0B429; color:#7D6608; background:#FEF9E7; }
+.chip.chip-warn.active { background:#F0B429; border-color:#F0B429; color:#fff; }
+.chip.chip-pantry { border-color:#7A8C5E; color:#4F6135; background:#EAF0E2; }
+.chip.chip-pantry.active { background:#7A8C5E; border-color:#7A8C5E; color:#fff; }
 
 /* ── WEEK NAV ── */
 .week-config { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;
@@ -112,18 +123,42 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 .section-sep::after { content:''; flex:1; height:1.5px; background:currentColor; opacity:.15; }
 .shop-group { background:var(--white); border-radius:var(--r); box-shadow:var(--shadow); margin-bottom:4px; overflow:hidden; }
 .shop-item { display:flex; align-items:center; gap:10px; padding:11px 14px;
-  border-bottom:1px solid var(--sand); background:var(--white); transition:opacity .2s; }
+  border-bottom:1px solid var(--sand); background:var(--white); transition:opacity .2s;
+  touch-action: manipulation; }
 .shop-item:last-child { border-bottom:none; }
 .shop-item.checked { opacity:.45; }
 .shop-item.checked .item-name { text-decoration:line-through; }
 .shop-check { width:24px; height:24px; border-radius:50%; border:2px solid var(--brown-mid);
   background:none; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;
-  transition:all .15s; font-size:13px; color:transparent; }
+  transition:all .15s; font-size:13px; color:transparent;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .shop-item.checked .shop-check { background:var(--olive); border-color:var(--olive); color:white; }
-.item-name { flex:1; font-size:14px; color:var(--brown); }
-.item-src { font-size:12px; color:var(--brown-mid); margin-top:1px; }
-.item-del { background:none; border:none; color:var(--brown-mid); font-size:16px; cursor:pointer; padding:4px; opacity:.5; }
+.item-name { flex:1; font-size:13.5px; color:var(--brown); }
+.item-src { font-size:11.5px; color:var(--brown-mid); margin-top:1px; }
+.item-del { background:none; border:none; color:var(--brown-mid); font-size:15px; cursor:pointer; padding:4px; opacity:.5; }
 .item-del:hover { opacity:1; color:var(--terra); }
+.qty-stepper { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+.qty-btn { width:25px; height:25px; min-width:25px; border-radius:50%; border:1.5px solid var(--sand);
+  background:var(--white); color:var(--brown-mid); font-size:14px; font-weight:700; line-height:1;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.qty-btn:active { background:var(--cream); border-color:var(--terra); color:var(--terra); }
+.qty-mid { width:64px; min-width:64px; display:flex; align-items:center; justify-content:center; gap:3px; }
+.qty-val { text-align:center; font-size:13px; font-weight:700; color:var(--brown); }
+.qty-mid .qty-input { width:46px; min-width:46px; height:25px; text-align:center; font-size:11px; font-weight:700;
+  color:var(--brown); border:1px solid var(--sand); border-radius:6px; background:var(--cream);
+  padding:0; margin:0; line-height:25px; letter-spacing:-0.3px; font-variant-numeric:tabular-nums;
+  -webkit-appearance:none; appearance:none; -moz-appearance:textfield; }
+.qty-mid .qty-input::-webkit-outer-spin-button, .qty-mid .qty-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.qty-mid .qty-input:focus { border-color:var(--terra); background:var(--white); outline:none; }
+.qty-unit-label { font-size:9.5px; font-weight:700; color:var(--brown-mid); flex-shrink:0; }
+.shop-item.checked .qty-stepper { opacity:.55; }
+.shop-item.locked .qty-btn, .shop-item.locked .item-del { opacity:.3; pointer-events:none; }
+.shop-item.locked .qty-mid { pointer-events:none; }
+.add-manual.locked { opacity:.4; pointer-events:none; }
+.lock-badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700;
+  color:#C0392B; background:#FDECEA; border:1px solid #f1b9b2; padding:3px 9px; border-radius:20px;
+  margin-left:8px; vertical-align:middle; }
 .add-manual { display:flex; gap:8px; margin-top:12px; align-items:flex-start; }
 .add-manual input { flex:1; }
 .add-manual-wrap { flex:1; position:relative; }
@@ -134,7 +169,8 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 .manual-suggestions.open { display:block; }
 .manual-sug-item { display:flex; align-items:center; justify-content:space-between;
   padding:10px 13px; border-bottom:1px solid var(--sand); cursor:pointer;
-  font-size:14px; color:var(--brown); }
+  font-size:14px; color:var(--brown);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .manual-sug-item:last-child { border-bottom:none; }
 .manual-sug-item:active { background:var(--cream); }
 .manual-sug-item .sug-cat { font-size:11px; color:var(--brown-mid); flex-shrink:0; margin-left:8px; }
@@ -162,6 +198,14 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
   border-radius:20px; font-size:13px; font-weight:500; border:1.5px solid transparent; }
 .ing-tag .del-ing { background:none; border:none; cursor:pointer; font-size:12px; opacity:.5; padding:0 0 0 2px; }
 .ing-tag .del-ing:hover { opacity:1; }
+.ing-tag.pending { border-style:dashed !important; }
+.ing-tag-name { cursor:pointer; }
+.pantry-mark { font-size:11px; opacity:.85; }
+.pending-banner { display:flex; align-items:center; gap:8px; background:#FEF9E7; border:1px solid #F4D03F;
+  color:#7D6608; font-size:12.5px; padding:8px 12px; border-radius:10px; margin-bottom:12px; }
+.ing-quick-add { display:flex; align-items:center; gap:8px; padding:10px 12px; cursor:pointer;
+  color:var(--terra); font-weight:700; font-size:13.5px; border-top:1px solid var(--sand); }
+.ing-quick-add:active { background:#FFF5F2; }
 
 /* ── INGREDIENT PICKER (in recipe modal) ── */
 .ing-search { margin-bottom:10px; }
@@ -169,7 +213,35 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
   border-radius:var(--rs); background:var(--white); }
 .ing-picker-cat { padding:6px 12px 2px; font-size:10px; font-weight:700; letter-spacing:.6px;
   text-transform:uppercase; color:var(--brown-mid); background:var(--cream); }
-.ing-option { display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--sand); cursor:pointer; }
+
+/* ── CATEGORY MANAGEMENT ── */
+.cat-manage-btn { background:none; border:none; font-size:16px; cursor:pointer; padding:4px 6px;
+  color:var(--brown-mid); touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.cat-manage-btn:hover { color:var(--terra); }
+.cat-filter-flow { overflow:hidden; margin-bottom:8px; }
+.cat-manage-btn-float { float:left; margin:1px 8px 6px 0; }
+.chips-float { display:block; }
+.chips-float .chip { display:inline-block; margin:0 6px 6px 0; }
+.cat-row { display:flex; align-items:center; gap:8px; padding:10px 0; border-bottom:1px solid var(--sand); }
+.cat-row-label { flex:1; font-size:14px; font-weight:600; color:var(--brown); }
+.cat-row-btns { display:flex; gap:4px; }
+.cat-row-btn { background:none; border:1.5px solid var(--sand); border-radius:8px;
+  padding:5px 8px; font-size:13px; cursor:pointer; color:var(--brown-mid);
+  touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.cat-row-btn:hover { border-color:var(--terra); color:var(--terra); }
+.cat-row-btn.danger { color:#C0392B; border-color:#e8b4b0; }
+.cat-row-btn.danger:hover { border-color:#C0392B; background:#FDECEA; }
+.emoji-grid { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; max-height:200px; overflow-y:auto; }
+.emoji-opt { font-size:22px; cursor:pointer; padding:6px; border-radius:8px;
+  border:2px solid transparent; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.emoji-opt:hover { background:var(--cream); }
+.emoji-opt.selected { border-color:var(--terra); background:var(--cream); }
+.recipe-group-title { display:flex; align-items:center; justify-content:space-between;
+  padding:14px 0 6px; border-bottom:2px solid currentColor; margin-bottom:8px; }
+.recipe-group-title .group-label { font-size:13px; font-weight:700; letter-spacing:.3px; }
+.recipe-group-title .group-actions { display:flex; gap:4px; }
+.ing-option { display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--sand); cursor:pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .ing-option:last-child { border-bottom:none; }
 .ing-option.selected { background:#FFF5F2; }
 .ing-option .ing-check { width:18px; height:18px; border-radius:4px; border:2px solid var(--sand);
@@ -186,11 +258,14 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 .empty p { font-size:14px; line-height:1.6; }
 
 /* ── MODAL ── */
-.modal-overlay { position:fixed; inset:0; background:rgba(44,36,22,.45);
-  display:none; align-items:flex-end; justify-content:center; z-index:1000; backdrop-filter:blur(3px); }
+.modal-overlay { position:fixed; inset:0; background:rgba(44,36,22,.55);
+  display:none; align-items:flex-end; justify-content:center; z-index:1000;
+  -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
 .modal-overlay.open { display:flex; }
-.modal { background:var(--white); border-radius:20px 20px 0 0; padding:20px 20px 36px;
-  width:100%; max-height:92dvh; overflow-y:auto; animation:slideUp .28s ease; }
+.modal { background:var(--white); border-radius:20px 20px 0 0;
+  padding-top:20px; padding-left:20px; padding-right:20px;
+  padding-bottom: max(36px, calc(36px + env(safe-area-inset-bottom)));
+  width:100%; max-height:92vh; max-height:92dvh; overflow-y:auto; animation:slideUp .28s ease; }
 @keyframes slideUp { from{transform:translateY(100%)} to{transform:none} }
 .modal-handle { width:36px; height:4px; background:var(--sand); border-radius:2px; margin:0 auto 16px; }
 .modal-title { font-family:'Fraunces',serif; font-size:20px; font-weight:700; margin-bottom:16px; }
@@ -201,12 +276,15 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 .meal-chips { display:flex; flex-wrap:wrap; gap:5px; flex:1; align-items:center; min-height:28px; }
 .meal-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 8px;
   background:#F0EBE3; border-radius:20px; font-size:12px; font-weight:600; color:#2C2416; }
+.meal-chip.ing-chip { background:#FDE8E0; color:#7A2C14; } /* ingrediente suelto — naranja terra */
 .meal-chip .rm { background:none; border:none; color:#6B5B45; font-size:13px; cursor:pointer;
   padding:0 0 0 2px; line-height:1; }
+.meal-chip.ing-chip .rm { color:#A0442A; }
 .meal-chip .rm:hover { color:#C5593A; }
 .meal-add-btn { background:#FAF7F2; border:1.5px dashed #6B5B45; color:#6B5B45;
   border-radius:20px; font-size:12px; font-weight:600; padding:4px 10px; cursor:pointer;
-  white-space:nowrap; flex-shrink:0; }
+  white-space:nowrap; flex-shrink:0;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .meal-add-btn:hover { background:#F0EBE3; }
 
 /* ── EXTRAS SECTION ── */
@@ -222,18 +300,27 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
   cursor:pointer; padding:0 0 0 2px; }
 .extra-chip .rm:hover { color:#C5593A; }
 
+/* ── PICKER TABS (receta / ingrediente) ── */
+.picker-tabs { display:flex; gap:0; margin-bottom:10px; border:1.5px solid var(--sand); border-radius:var(--rs); overflow:hidden; }
+.picker-tab { flex:1; border:none; background:var(--cream); color:var(--brown-mid);
+  font-family:'Karla',sans-serif; font-size:13px; font-weight:600; padding:8px 4px; cursor:pointer;
+  transition:all .15s; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.picker-tab.active { background:var(--terra); color:white; }
+
 /* ── RECIPE PICKER SHEET ── */
-.picker-overlay { position:fixed; inset:0; background:rgba(44,36,22,.45);
+.picker-overlay { position:fixed; inset:0; background:rgba(44,36,22,.55);
   display:none; align-items:flex-end; justify-content:center; z-index:1100; }
 .picker-overlay.open { display:flex; }
 .picker-sheet { background:#FFFFFF; border-radius:20px 20px 0 0; width:100%;
-  max-height:72dvh; display:flex; flex-direction:column; animation:slideUp .25s ease; }
+  max-height:72vh; max-height:72dvh; display:flex; flex-direction:column; animation:slideUp .25s ease;
+  padding-bottom: env(safe-area-inset-bottom); }
 .picker-head { padding:14px 16px 10px; border-bottom:1px solid #E8E0D0; flex-shrink:0; }
 .picker-title { font-family:'Fraunces',serif; font-size:16px; font-weight:700;
   color:#2C2416; margin-bottom:10px; }
 .picker-list { overflow-y:auto; flex:1; }
 .picker-item { display:flex; align-items:center; gap:10px; padding:12px 16px;
-  border-bottom:1px solid #E8E0D0; cursor:pointer; }
+  border-bottom:1px solid #E8E0D0; cursor:pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .picker-item:last-child { border-bottom:none; }
 .picker-item:active { background:#FAF7F2; }
 .picker-item-name { flex:1; font-size:14px; color:#2C2416; font-weight:500; }
@@ -259,7 +346,8 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 .cal-dow { text-align:center; font-size:10px; font-weight:700; color:#6B5B45;
   padding:4px 0; text-transform:uppercase; letter-spacing:.4px; }
 .cal-day { text-align:center; font-size:13px; padding:7px 2px; border-radius:8px;
-  cursor:pointer; color:#2C2416; font-weight:500; transition:background .12s; }
+  cursor:pointer; color:#2C2416; font-weight:500; transition:background .12s;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .cal-day:hover { background:#F0EBE3; }
 .cal-day.other-month { color:#C8BFB0; }
 .cal-day.in-week { background:#F0EBE3; color:#2C2416; font-weight:600; }
@@ -275,10 +363,12 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 .cal-today-btn:hover { background:#FAF7F2; }
 
 /* ── FAB ── */
-.fab { position:fixed; bottom:24px; right:20px; width:54px; height:54px; border-radius:50%;
+.fab { position:fixed; right:20px; width:54px; height:54px; border-radius:50%;
   background:var(--terra); color:white; border:none; font-size:26px; cursor:pointer;
   box-shadow:0 4px 16px rgba(197,89,58,.4); display:flex; align-items:center; justify-content:center;
-  transition:transform .15s; z-index:100; }
+  transition:transform .15s; z-index:100;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .fab:active { transform:scale(.93); }
 </style>
 </head>
@@ -291,9 +381,9 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
     </div>
     <nav id="nav">
       <button class="nav-btn active" onclick="switchTab('menu')" id="tab-menu"><span class="ni">📅</span>Menú</button>
-      <button class="nav-btn" onclick="switchTab('lista')" id="tab-lista"><span class="ni">🛒</span>Compra</button>
+      <button class="nav-btn" onclick="switchTab('lista')" id="tab-lista"><span class="ni">📝</span>Compra</button>
       <button class="nav-btn" onclick="switchTab('recetario')" id="tab-recetario"><span class="ni">📖</span>Recetas</button>
-      <button class="nav-btn" onclick="switchTab('ingredientes')" id="tab-ingredientes"><span class="ni">🥕</span>Ingredientes</button>
+      <button class="nav-btn" onclick="switchTab('ingredientes')" id="tab-ingredientes"><span class="ni">🛒</span>Productos</button>
     </nav>
   </div>
 
@@ -327,15 +417,16 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
     <!-- ── LISTA DE LA COMPRA ── -->
     <div id="section-lista" class="section">
       <div class="shop-header">
-        <h2>Lista de la compra</h2>
+        <h2>Lista de la compra<span class="lock-badge" id="lock-badge" style="display:none">🔒 Bloqueada</span></h2>
         <div style="display:flex;gap:6px">
           <button class="btn btn-sm btn-outline" onclick="shareShopList()" title="Compartir lista">📤</button>
           <button class="btn btn-sm btn-outline" onclick="exportShopList()" title="Exportar como archivo">📁</button>
           <button class="btn btn-sm btn-outline" onclick="clearChecked()">Borrar tachados</button>
         </div>
       </div>
+      <button class="btn btn-full" id="btn-lock-list" onclick="toggleShopLock()" style="margin-bottom:12px"></button>
       <div id="shop-content"></div>
-      <div class="add-manual">
+      <div class="add-manual" id="add-manual-row">
         <div class="add-manual-wrap">
           <input type="text" id="manual-item" placeholder="Añadir ingrediente…"
             oninput="renderManualSuggestions()"
@@ -350,13 +441,20 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
     <!-- ── RECETARIO ── -->
     <div id="section-recetario" class="section">
       <input type="text" id="recipe-search" placeholder="🔍 Buscar receta…" oninput="renderRecipes()" style="margin-bottom:12px">
-      <div class="chips" id="recipe-filters"></div>
+      <div class="cat-filter-flow">
+        <button class="cat-manage-btn cat-manage-btn-float" onclick="openCatManager('tipo')" title="Gestionar tipos de plato">📔</button>
+        <div class="chips chips-float" id="recipe-filters" style="margin-bottom:0"></div>
+      </div>
       <div id="recipes-list"></div>
     </div>
 
     <!-- ── INGREDIENTES ── -->
     <div id="section-ingredientes" class="section">
-      <div class="chips" id="ing-cat-filter"></div>
+      <div id="pending-banner-wrap"></div>
+      <div class="cat-filter-flow">
+        <button class="cat-manage-btn cat-manage-btn-float" onclick="openCatManager('ing')" title="Gestionar categorías">📖</button>
+        <div class="chips chips-float" id="ing-cat-filter" style="margin-bottom:0"></div>
+      </div>
       <div id="ing-catalogue"></div>
     </div>
 
@@ -378,29 +476,32 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
     <div class="field">
       <label>Tipo de plato</label>
       <select id="recipe-tipo">
-        <option value="carne">🥩 Carne</option>
-        <option value="pescado">🐟 Pescado</option>
-        <option value="pasta">🍝 Pasta</option>
-        <option value="arroz">🍚 Arroz</option>
-        <option value="verdura">🥦 Verdura</option>
-        <option value="ensalada">🥗 Ensalada</option>
-        <option value="legumbre">🫘 Legumbres</option>
-        <option value="huevo">🥚 Huevo</option>
-        <option value="sopa">🍲 Sopa / Crema</option>
-        <option value="cocido">🥘 Cocido</option>
-        <option value="tapas">🫓 Tapas</option>
-        <option value="reposteria">🧁 Repostería</option>
-        <option value="otro">🍽 Otro</option>
+        <!-- populated dynamically -->
       </select>
     </div>
     <div class="field">
-      <label>Ingredientes seleccionados</label>
+      <label>Productos seleccionados</label>
       <div class="selected-ings" id="selected-ings-display"></div>
       <div class="ing-search">
         <input type="text" id="ing-search-input" placeholder="Buscar ingrediente…" oninput="renderIngPicker()">
       </div>
       <div class="ing-picker" id="ing-picker"></div>
-      <p style="font-size:12px;color:var(--brown-mid);margin-top:6px">¿No está? Añádelo primero en la pestaña Ingredientes.</p>
+      <p style="font-size:12px;color:var(--brown-mid);margin-top:6px">¿No está? Escribe el nombre y pulsa "Añadir como nuevo producto".</p>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="field" style="flex:1">
+        <label>Tiempo (opcional)</label>
+        <input type="text" id="recipe-time" placeholder="Ej: 30 min">
+      </div>
+      <div class="field" style="flex:1">
+        <label>Dificultad (opcional)</label>
+        <select id="recipe-difficulty">
+          <option value="">— Sin indicar —</option>
+          <option value="facil">🟢 Fácil</option>
+          <option value="media">🟡 Media</option>
+          <option value="dificil">🔴 Difícil</option>
+        </select>
+      </div>
     </div>
     <div class="field">
       <label>Notas / Preparación (opcional)</label>
@@ -418,7 +519,8 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 <div class="modal-overlay" id="modal-ing">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Nuevo ingrediente</div>
+    <div class="modal-title" id="modal-ing-title">Nuevo producto</div>
+    <input type="hidden" id="ing-edit-id">
     <div class="field">
       <label>Nombre</label>
       <input type="text" id="ing-name" placeholder="Ej: Pechuga de pollo">
@@ -426,33 +528,30 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
     <div class="field">
       <label>Categoría</label>
       <select id="ing-cat-select">
-        <option value="carne">🥩 Carne</option>
-        <option value="pescado">🐟 Pescado</option>
-        <option value="marisco">🦐 Marisco</option>
-        <option value="fruta">🍓 Fruta</option>
-        <option value="verdura">🥦 Verdura / Hortaliza</option>
-        <option value="hongo">🍄 Hongos / Setas</option>
-        <option value="lacteo">🥛 Lácteo</option>
-        <option value="huevo">🥚 Huevo</option>
-        <option value="pasta">🍝 Pasta / Arroz / Cereal</option>
-        <option value="legumbre">🫘 Legumbre</option>
-        <option value="conserva">🥫 Conserva</option>
-        <option value="pan">🍞 Pan / Bollería</option>
-        <option value="condimento">🫙 Aceite / Condimento</option>
-        <option value="especia">🧂 Especias</option>
-        <option value="bebida">🧃 Bebida</option>
-        <option value="congelado">🧊 Congelado</option>
-        <option value="dulce">🍫 Dulces / Snacks</option>
-        <option value="snacks">🥨 Snacks</option>
-        <option value="frutoseco">🥜 Frutos secos</option>
-        <option value="reposteria">🧁 Repostería / Horno</option>
-        <option value="limpieza">🧴 Limpieza / Hogar</option>
-        <option value="otro">📦 Otro</option>
+        <!-- populated dynamically -->
       </select>
+    </div>
+    <div class="field">
+      <label>Se compra en…</label>
+      <select id="ing-unit-select">
+        <option value="ud">🔢 Unidades (1, 2, 3…)</option>
+        <option value="kg">⚖️ Kilogramos (kg)</option>
+        <option value="g">⚖️ Gramos (g)</option>
+        <option value="l">🧴 Litros (L)</option>
+        <option value="ml">🧴 Mililitros (ml)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Disponibilidad</label>
+      <select id="ing-pantry-select">
+        <option value="0">🛒 Se compra normalmente</option>
+        <option value="1">🏺 Básico de despensa (no sale en la lista)</option>
+      </select>
+      <p style="font-size:11.5px;color:var(--brown-mid);margin-top:5px">Para cosas como sal, especias o aceite que casi nunca se acaban: la receta seguirá llevándolas, pero no se añadirán solas a la lista de la compra.</p>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('modal-ing')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveIngredient()">Añadir</button>
+      <button class="btn btn-primary" id="btn-save-ing" onclick="saveIngredient()">Añadir</button>
     </div>
   </div>
 </div>
@@ -499,12 +598,16 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
   </div>
 </div>
 
-<!-- ── RECIPE PICKER SHEET ── -->
+<!-- ── RECIPE / INGREDIENT PICKER SHEET ── -->
 <div class="picker-overlay" id="picker-overlay">
   <div class="picker-sheet">
     <div class="picker-head">
       <div class="picker-title" id="picker-title">Añadir receta</div>
-      <input type="text" id="picker-search" placeholder="Buscar receta…" oninput="renderPickerList()">
+      <div class="picker-tabs" id="picker-tabs">
+        <button class="picker-tab active" id="picker-tab-recipe" onclick="switchPickerTab('recipe')">📖 Receta</button>
+        <button class="picker-tab" id="picker-tab-ing" onclick="switchPickerTab('ing')">🥕 Ingrediente</button>
+      </div>
+      <input type="text" id="picker-search" placeholder="Buscar…" oninput="renderPickerList()">
     </div>
     <div class="picker-list" id="picker-list"></div>
     <div class="picker-cancel" onclick="closePicker()">Cancelar</div>
@@ -554,68 +657,188 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 </div>
 
 
+<!-- ── MODAL GESTIÓN CATEGORÍAS INGREDIENTES ── -->
+<div class="modal-overlay" id="modal-ing-cats">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ Categorías de productos</div>
+    <div id="ing-cats-list"></div>
+    <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="openNewCatModal('ing')">+ Nueva categoría</button>
+    <div class="modal-actions" style="margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-ing-cats')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL GESTIÓN TIPOS DE PLATO ── -->
+<div class="modal-overlay" id="modal-tipo-cats">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ Tipos de plato</div>
+    <div id="tipo-cats-list"></div>
+    <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="openNewCatModal('tipo')">+ Nuevo tipo</button>
+    <div class="modal-actions" style="margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-tipo-cats')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL EDITAR / NUEVA CATEGORÍA ── -->
+<div class="modal-overlay" id="modal-edit-cat">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="edit-cat-title">Nueva categoría</div>
+    <input type="hidden" id="edit-cat-type"> <!-- 'ing' | 'tipo' -->
+    <input type="hidden" id="edit-cat-id">
+    <div class="field">
+      <label>Nombre</label>
+      <input type="text" id="edit-cat-name" placeholder="Ej: Especiales">
+    </div>
+    <div class="field">
+      <label>Emoji</label>
+      <div id="edit-cat-emoji-selected" style="font-size:28px;text-align:center;padding:8px;background:var(--cream);border-radius:10px;margin-bottom:8px">⭐</div>
+      <div class="emoji-grid" id="emoji-grid"></div>
+    </div>
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn btn-outline" onclick="closeModal('modal-edit-cat')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCatEdit()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL CONFIRMAR ELIMINAR CATEGORÍA ── -->
+<div class="modal-overlay" id="modal-delete-cat">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚠️ Eliminar categoría</div>
+    <p id="delete-cat-msg" style="font-size:14px;color:var(--brown-mid);line-height:1.6;margin-bottom:20px"></p>
+    <button class="btn btn-full" style="background:#C0392B;color:white;margin-bottom:10px" onclick="confirmDeleteCat()">Eliminar de todas formas</button>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-delete-cat')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════
-const ING_CATS = {
-  carne:     { label:'🥩 Carne',              color:'#C0392B', bg:'#FDECEA' },
-  pescado:   { label:'🐟 Pescado',            color:'#2471A3', bg:'#EAF4FB' },
-  marisco:   { label:'🦐 Marisco',            color:'#1A5276', bg:'#D6EAF8' },
-  fruta:     { label:'🍓 Fruta',              color:'#CB4335', bg:'#FDEDEC' },
-  verdura:   { label:'🥦 Verdura',            color:'#1E8449', bg:'#EAFAF1' },
-  hongo:     { label:'🍄 Hongos / Setas',     color:'#6E4C1E', bg:'#F5ECD7' },
-  lacteo:    { label:'🥛 Lácteo',             color:'#5D6D7E', bg:'#EBF5FB' },
-  huevo:     { label:'🥚 Huevo',              color:'#B7950B', bg:'#FEFDE7' },
-  pasta:     { label:'🍝 Pasta / Arroz',      color:'#D4AC0D', bg:'#FEF9E7' },
-  legumbre:  { label:'🫘 Legumbre',           color:'#784212', bg:'#FDF2E9' },
-  conserva:  { label:'🥫 Conserva',           color:'#5D6D7E', bg:'#EBF5FB' },
-  pan:       { label:'🍞 Pan / Bollería',     color:'#A04000', bg:'#FDEBD0' },
-  condimento:{ label:'🫙 Aceite / Condimento',color:'#7D6608', bg:'#FCF3CF' },
-  especia:   { label:'🧂 Especias',           color:'#6C3483', bg:'#F5EEF8' },
-  bebida:    { label:'🧃 Bebida',             color:'#117A65', bg:'#E8F8F5' },
-  congelado: { label:'🧊 Congelado',          color:'#2E86C1', bg:'#EBF5FB' },
-  dulce:     { label:'🍫 Dulces / Snacks',    color:'#884EA0', bg:'#F5EEF8' },
-  snacks:    { label:'🥨 Snacks',             color:'#C0392B', bg:'#FDECEA' },
-  frutoseco: { label:'🥜 Frutos secos',       color:'#7D5A2F', bg:'#F5ECD7' },
-  reposteria:{ label:'🧁 Repostería / Horno', color:'#C06B2A', bg:'#FDF0E0' },
-  limpieza:  { label:'🧴 Limpieza / Hogar',   color:'#2E86C1', bg:'#D6EAF8' },
-  otro:      { label:'📦 Otro',               color:'#6B5B45', bg:'#F5F0EA' },
-};
+const DEFAULT_ING_CATS = [
+  {id:'carne',     label:'🥩 Carne',              color:'#C0392B', bg:'#FDECEA'},
+  {id:'pescado',   label:'🐟 Pescado',            color:'#2471A3', bg:'#EAF4FB'},
+  {id:'marisco',   label:'🦐 Marisco',            color:'#1A5276', bg:'#D6EAF8'},
+  {id:'fruta',     label:'🍓 Fruta',              color:'#CB4335', bg:'#FDEDEC'},
+  {id:'verdura',   label:'🥦 Verdura',            color:'#1E8449', bg:'#EAFAF1'},
+  {id:'hongo',     label:'🍄 Hongos / Setas',     color:'#6E4C1E', bg:'#F5ECD7'},
+  {id:'lacteo',    label:'🥛 Lácteo',             color:'#5D6D7E', bg:'#EBF5FB'},
+  {id:'huevo',     label:'🥚 Huevo',              color:'#B7950B', bg:'#FEFDE7'},
+  {id:'pasta',     label:'🍝 Pasta / Arroz',      color:'#D4AC0D', bg:'#FEF9E7'},
+  {id:'legumbre',  label:'🫘 Legumbre',           color:'#784212', bg:'#FDF2E9'},
+  {id:'conserva',  label:'🥫 Conserva',           color:'#5D6D7E', bg:'#EBF5FB'},
+  {id:'pan',       label:'🍞 Pan / Bollería',     color:'#A04000', bg:'#FDEBD0'},
+  {id:'condimento',label:'🫙 Aceite / Condimento',color:'#7D6608', bg:'#FCF3CF'},
+  {id:'especia',   label:'🧂 Especias',           color:'#6C3483', bg:'#F5EEF8'},
+  {id:'bebida',    label:'🧃 Bebida',             color:'#117A65', bg:'#E8F8F5'},
+  {id:'congelado', label:'🧊 Congelado',          color:'#2E86C1', bg:'#EBF5FB'},
+  {id:'dulce',     label:'🍫 Dulces / Snacks',    color:'#884EA0', bg:'#F5EEF8'},
+  {id:'frutoseco', label:'🥜 Frutos secos',       color:'#7D5A2F', bg:'#F5ECD7'},
+  {id:'reposteria',label:'🧁 Repostería / Horno', color:'#C06B2A', bg:'#FDF0E0'},
+  {id:'limpieza',  label:'🧴 Limpieza / Hogar',   color:'#2E86C1', bg:'#D6EAF8'},
+  {id:'otro',      label:'📦 Otro',               color:'#6B5B45', bg:'#F5F0EA'},
+  {id:'sin_categorizar', label:'⚠️ Sin categorizar', color:'#C0392B', bg:'#FDECEA'},
+];
 
-const TIPOS = {
-  carne:      { label:'🥩 Carne',        color:'#C0392B', bg:'#FDECEA' },
-  pescado:    { label:'🐟 Pescado',      color:'#2471A3', bg:'#EAF4FB' },
-  pasta:      { label:'🍝 Pasta',        color:'#D4AC0D', bg:'#FEF9E7' },
-  arroz:      { label:'🍚 Arroz',        color:'#B7950B', bg:'#FEF5E4' },
-  verdura:    { label:'🥦 Verdura',      color:'#1E8449', bg:'#EAFAF1' },
-  ensalada:   { label:'🥗 Ensalada',     color:'#27AE60', bg:'#E9F7EF' },
-  legumbre:   { label:'🫘 Legumbres',    color:'#784212', bg:'#FDF2E9' },
-  huevo:      { label:'🥚 Huevo',        color:'#9A7D0A', bg:'#FEFDE7' },
-  sopa:       { label:'🍲 Sopa/Crema',   color:'#884EA0', bg:'#F5EEF8' },
-  cocido:     { label:'🥘 Cocido',       color:'#A04000', bg:'#FDEBD0' },
-  tapas:      { label:'🫓 Tapas',        color:'#117A65', bg:'#E8F8F5' },
-  reposteria: { label:'🧁 Repostería',   color:'#C06B2A', bg:'#FDF0E0' },
-  otro:       { label:'🍽 Otro',         color:'#6B5B45', bg:'#F5F0EA' },
-};
+const SIN_CAT_ID = 'sin_categorizar';
+
+const DEFAULT_TIPOS = [
+  {id:'carne',     label:'🥩 Carne',        color:'#C0392B', bg:'#FDECEA'},
+  {id:'pescado',   label:'🐟 Pescado',      color:'#2471A3', bg:'#EAF4FB'},
+  {id:'pasta',     label:'🍝 Pasta',        color:'#D4AC0D', bg:'#FEF9E7'},
+  {id:'arroz',     label:'🍚 Arroz',        color:'#B7950B', bg:'#FEF5E4'},
+  {id:'verdura',   label:'🥦 Verdura',      color:'#1E8449', bg:'#EAFAF1'},
+  {id:'ensalada',  label:'🥗 Ensalada',     color:'#27AE60', bg:'#E9F7EF'},
+  {id:'legumbre',  label:'🫘 Legumbres',    color:'#784212', bg:'#FDF2E9'},
+  {id:'huevo',     label:'🥚 Huevo',        color:'#9A7D0A', bg:'#FEFDE7'},
+  {id:'sopa',      label:'🍲 Sopa/Crema',   color:'#884EA0', bg:'#F5EEF8'},
+  {id:'cocido',    label:'🥘 Cocido',       color:'#A04000', bg:'#FDEBD0'},
+  {id:'tapas',     label:'🫓 Tapas',        color:'#117A65', bg:'#E8F8F5'},
+  {id:'reposteria',label:'🧁 Repostería',   color:'#C06B2A', bg:'#FDF0E0'},
+  {id:'otro',      label:'🍽 Otro',         color:'#6B5B45', bg:'#F5F0EA'},
+];
+
+// Helper: get ING_CATS as object (for backward compat)
+function getIngCatsObj(){ return Object.fromEntries(ingCats.map(c=>([c.id,c]))); }
+function getTiposObj(){    return Object.fromEntries(tiposCats.map(c=>([c.id,c]))); }
+function isPending(ing){ return ing && ing.cat===SIN_CAT_ID; }
+function isPantryItem(ing){ return !!(ing && ing.pantry); }
+// Legacy aliases used throughout the code
+let ING_CATS = {};
+let TIPOS    = {};
+function refreshCatAliases(){ ING_CATS = getIngCatsObj(); TIPOS = getTiposObj(); }
 
 const ALL_DAYS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+const DIFFICULTY_STYLES = {
+  facil:  { label:'Fácil',   color:'#1E8449', bg:'#EAFAF1' },
+  media:  { label:'Media',   color:'#B7950B', bg:'#FEF9E7' },
+  dificil:{ label:'Difícil', color:'#C0392B', bg:'#FDECEA' },
+};
+
+// ── UNIDADES DE MEDIDA ──
+const UNIT_LABEL = { ud:'ud', kg:'kg', g:'g', l:'L', ml:'ml' };
+const UNIT_STEP  = { ud:1,   kg:0.5,  g:50,  l:0.5,  ml:50 };
+const UNIT_DEFAULT_QTY = { ud:1, kg:1, g:500, l:1, ml:500 };
+const UNIT_DECIMALS = { ud:0, kg:2, g:0, l:2, ml:0 };
+const QTY_MAX_CHARS = 6;
+function getUnit(item){ return item.unit && UNIT_LABEL[item.unit] ? item.unit : 'ud'; }
+function formatQty(qty, unit){
+  const d = UNIT_DECIMALS[unit] ?? 0;
+  let n = Number(qty);
+  if(d===0) return String(Math.round(n));
+  // trim trailing zeros but keep at least 1 decimal when not integer
+  let s = n.toFixed(d);
+  s = s.replace(/0+$/,'').replace(/\.$/,'');
+  return s.includes('.') ? s : s;
+}
+
+
 
 function load(k,f){ try{return JSON.parse(localStorage.getItem(k))??f}catch{return f} }
 function save(k,v){ localStorage.setItem(k,JSON.stringify(v)) }
 
-let catalogue = load('ms_catalogue', getDefaultIngredients());
-let recipes   = load('ms_recipes', []);
-let menus     = load('ms_menus', {});
-let shopList  = load('ms_shop', []);
-let weekStartDay = load('ms_start_day', 6);
+let catalogue   = load('ms_catalogue', getDefaultIngredients());
+let recipes     = load('ms_recipes', []);
+let menus       = load('ms_menus', {});
+let shopList    = load('ms_shop', []);
+let shopLocked  = load('ms_shop_locked', false);
+let weekStartDay= load('ms_start_day', 6);
+let ingCats     = load('ms_ing_cats', DEFAULT_ING_CATS);
+let tiposCats   = load('ms_tipos_cats', DEFAULT_TIPOS);
+refreshCatAliases();
 
 function saveAll(){
   save('ms_catalogue', catalogue);
   save('ms_recipes', recipes);
   save('ms_menus', menus);
   save('ms_shop', shopList);
+  save('ms_shop_locked', shopLocked);
   save('ms_start_day', weekStartDay);
+  save('ms_ing_cats', ingCats);
+  save('ms_tipos_cats', tiposCats);
+  refreshCatAliases();
+  renderNavBadge();
+}
+
+function renderNavBadge(){
+  const n=catalogue.filter(isPending).length;
+  const tab=document.getElementById('tab-ingredientes');
+  if(!tab) return;
+  const ni=tab.querySelector('.ni');
+  let badge=ni.querySelector('.nav-badge');
+  if(n){
+    if(!badge){ badge=document.createElement('span'); badge.className='nav-badge'; ni.appendChild(badge); }
+    badge.textContent=n>9?'9+':n;
+  } else if(badge){ badge.remove(); }
 }
 
 function getDefaultIngredients(){
@@ -863,6 +1086,34 @@ function mergeDefaultIngredients(){
   if(toAdd.length){ catalogue = [...catalogue, ...toAdd]; saveAll(); }
 }
 
+function ensureSinCategorizarCat(){
+  if(!ingCats.find(c=>c.id===SIN_CAT_ID)){
+    ingCats.push({id:SIN_CAT_ID, label:'⚠️ Sin categorizar', color:'#C0392B', bg:'#FDECEA'});
+    saveAll();
+  }
+}
+
+// Marca como "básico de despensa" un set curado de especias y aceites/vinagres
+// la primera vez que se abre esta versión, para que la función sea útil desde ya.
+// Solo se ejecuta una vez: si el usuario desmarca alguno después, no se vuelve a tocar.
+const DEFAULT_PANTRY_IDS = [
+  // especias
+  'i130','i131','i131b','i132','i132b','i133','i134','i135','i136',
+  'i137','i137b','i137c','i137d','i137e','i137f','i137g','i137h','i137i',
+  // aceites y vinagres
+  'i120','i120b','i121','i121b','i121c',
+];
+function seedDefaultPantryItems(){
+  if(load('ms_pantry_seeded', false)) return;
+  let changed=false;
+  DEFAULT_PANTRY_IDS.forEach(id=>{
+    const ing=catalogue.find(i=>i.id===id);
+    if(ing && ing.pantry===undefined){ ing.pantry=true; changed=true; }
+  });
+  save('ms_pantry_seeded', true);
+  if(changed) saveAll();
+}
+
 // ═══════════════════════════════════════
 // TABS & STATE
 // ═══════════════════════════════════════
@@ -993,10 +1244,18 @@ function renderWeek(){
   container.appendChild(extrasCard);
 }
 
-function mealChipHTML(key, meal, rid){
-  const r=recipes.find(r=>r.id===rid);
+function mealChipHTML(key, meal, token){
+  if(token.startsWith('ing:')){
+    const iid = token.slice(4);
+    const ing = catalogue.find(i=>i.id===iid);
+    const name = ing ? ing.name : iid;
+    const catInfo = ing ? (ING_CATS[ing.cat]||ING_CATS.otro) : ING_CATS.otro;
+    const emoji = catInfo.label.split(' ')[0];
+    return `<span class="meal-chip ing-chip">${emoji} ${name}<button class="rm" onclick="removeFromMeal('${key}','${meal}','${token.replace(/'/g,"\\'")}')">×</button></span>`;
+  }
+  const r=recipes.find(r=>r.id===token);
   if(!r) return '';
-  return `<span class="meal-chip">${r.name}<button class="rm" onclick="removeFromMeal('${key}','${meal}','${rid}')">×</button></span>`;
+  return `<span class="meal-chip">${r.name}<button class="rm" onclick="removeFromMeal('${key}','${meal}','${token}')">×</button></span>`;
 }
 
 function extraChipHTML(weekKey, rid){
@@ -1019,6 +1278,7 @@ function removeExtra(weekKey, rid){
 
 // ── RECIPE PICKER ──
 let pickerContext = null; // {key, meal}
+let pickerTab = 'recipe'; // 'recipe' | 'ing'
 
 function openPicker(key, meal){
   pickerContext={key, meal};
@@ -1027,8 +1287,19 @@ function openPicker(key, meal){
     isExtra ? 'Añadir receta adicional' :
     meal==='lunch' ? 'Añadir a comida' : 'Añadir a cena';
   document.getElementById('picker-search').value='';
-  renderPickerList();
+  // Extras only support recipes
+  document.getElementById('picker-tabs').style.display = isExtra ? 'none' : 'flex';
+  switchPickerTab('recipe');
   document.getElementById('picker-overlay').classList.add('open');
+}
+
+function switchPickerTab(tab){
+  pickerTab = tab;
+  document.getElementById('picker-tab-recipe').classList.toggle('active', tab==='recipe');
+  document.getElementById('picker-tab-ing').classList.toggle('active', tab==='ing');
+  document.getElementById('picker-search').placeholder = tab==='recipe' ? 'Buscar receta…' : 'Buscar ingrediente…';
+  document.getElementById('picker-search').value='';
+  renderPickerList();
 }
 
 function closePicker(){
@@ -1037,20 +1308,56 @@ function closePicker(){
 }
 
 function renderPickerList(){
-  const q=document.getElementById('picker-search').value.trim().toLowerCase();
-  const filtered=q ? recipes.filter(r=>r.name.toLowerCase().includes(q)) : recipes;
-  const el=document.getElementById('picker-list');
-  if(!filtered.length){
-    el.innerHTML=`<div style="padding:20px;text-align:center;color:#6B5B45;font-size:14px">Sin resultados</div>`;
-    return;
+  const q = normalize(document.getElementById('picker-search').value.trim());
+  const el = document.getElementById('picker-list');
+
+  if(pickerTab === 'recipe'){
+    const filtered = q ? recipes.filter(r=>normalize(r.name).includes(q)) : recipes;
+    if(!filtered.length){
+      el.innerHTML=`<div style="padding:20px;text-align:center;color:#6B5B45;font-size:14px">Sin resultados</div>`;
+      return;
+    }
+    el.innerHTML=filtered.map(r=>{
+      const tipo=TIPOS[r.tipo||'otro'];
+      return `<div class="picker-item" onclick="pickRecipe('${r.id}')">
+        <span class="picker-item-name">${r.name}</span>
+        <span class="picker-item-tipo" style="color:${tipo.color}">${tipo.label}</span>
+      </div>`;
+    }).join('');
+  } else {
+    // Ingredient tab
+    const sorted = [...catalogue].sort((a,b)=>a.name.localeCompare(b.name,'es'));
+    const filtered = q ? sorted.filter(i=>normalize(i.name).includes(q)) : sorted;
+    if(!filtered.length){
+      el.innerHTML=`<div style="padding:20px;text-align:center;color:#6B5B45;font-size:14px">Sin resultados</div>`;
+      return;
+    }
+    // Group by category
+    const byCat = {};
+    filtered.forEach(i=>{ (byCat[i.cat]=byCat[i.cat]||[]).push(i); });
+    let html = '';
+    Object.keys(ING_CATS).forEach(cat=>{
+      if(!byCat[cat]?.length) return;
+      const info = ING_CATS[cat];
+      html += `<div class="ing-picker-cat">${info.label}</div>`;
+      byCat[cat].forEach(ing=>{
+        html += `<div class="picker-item" onclick="pickIngredient('${ing.id}')">
+          <span class="picker-item-name">${isPantryItem(ing)?'🏺 ':''}${ing.name}</span>
+        </div>`;
+      });
+    });
+    // Custom cats not in ING_CATS
+    Object.keys(byCat).forEach(cat=>{
+      if(ING_CATS[cat]) return;
+      html += `<div class="ing-picker-cat">${cat}</div>`;
+      byCat[cat].forEach(ing=>{
+        html += `<div class="picker-item" onclick="pickIngredient('${ing.id}')">
+          <span class="picker-item-name">${isPantryItem(ing)?'🏺 ':''}${ing.name}</span>
+        </div>`;
+      });
+    });
+    el.innerHTML = html;
   }
-  el.innerHTML=filtered.map(r=>{
-    const tipo=TIPOS[r.tipo||'otro'];
-    return `<div class="picker-item" onclick="pickRecipe('${r.id}')">
-      <span class="picker-item-name">${r.name}</span>
-      <span class="picker-item-tipo" style="color:${tipo.color}">${tipo.label}</span>
-    </div>`;
-  }).join('');
 }
 
 function pickRecipe(rid){
@@ -1068,10 +1375,22 @@ function pickRecipe(rid){
   saveAll(); closePicker(); renderWeek();
 }
 
+function pickIngredient(iid){
+  if(!pickerContext) return;
+  const {key, meal}=pickerContext;
+  if(!menus[key]) menus[key]={};
+  // Store as 'ing:ID' to distinguish from recipe IDs
+  const token = 'ing:'+iid;
+  const arr = getMealIds(key,meal);
+  if(!arr.includes(token)) menus[key][meal]=[...arr, token];
+  saveAll(); closePicker(); renderWeek();
+}
+
 // ═══════════════════════════════════════
 // LISTA DE LA COMPRA
 // ═══════════════════════════════════════
 function generateShoppingList(){
+  if(shopLocked){ showToast('Desbloquea la lista para regenerarla'); switchTab('lista'); return; }
   if(shopList.length){
     openModal('modal-shopgen'); return;
   }
@@ -1090,6 +1409,7 @@ function _doGenerateShoppingList(mode){
       let ing = catalogue.find(c=>c.id===iid);
       if(!ing) ing = catalogue.find(c=>c.name.toLowerCase()===String(iid).toLowerCase());
       if(ing){
+        if(isPantryItem(ing)) return; // básico de despensa: no se añade solo
         if(!ingMap[ing.id]) ingMap[ing.id]={ing, sources:[]};
         if(!ingMap[ing.id].sources.includes(recipe.name))
           ingMap[ing.id].sources.push(recipe.name);
@@ -1102,18 +1422,41 @@ function _doGenerateShoppingList(mode){
     });
   }
 
+  function addIngToken(token, dayLabel){
+    if(!token.startsWith('ing:')) return;
+    const iid = token.slice(4);
+    const ing = catalogue.find(c=>c.id===iid);
+    if(!ing) return;
+    if(isPantryItem(ing)) return; // básico de despensa: no se añade solo
+    if(!ingMap[ing.id]) ingMap[ing.id]={ing, sources:[]};
+    if(!ingMap[ing.id].sources.includes(dayLabel))
+      ingMap[ing.id].sources.push(dayLabel);
+  }
+
+  const dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   for(let i=0;i<7;i++){
     const d=new Date(start); d.setDate(d.getDate()+i);
-    getMealIds(dayKey(d),'lunch').forEach(addRecipe);
-    getMealIds(dayKey(d),'dinner').forEach(addRecipe);
+    const key=dayKey(d);
+    const dName=dayNames[d.getDay()];
+    getMealIds(key,'lunch').forEach(token=>{
+      if(token.startsWith('ing:')) addIngToken(token, `${dName} comida`);
+      else addRecipe(token);
+    });
+    getMealIds(key,'dinner').forEach(token=>{
+      if(token.startsWith('ing:')) addIngToken(token, `${dName} cena`);
+      else addRecipe(token);
+    });
   }
   getExtras(weekKey).forEach(addRecipe);
 
-  const newAutoItems=Object.values(ingMap).map(({ing,sources})=>({
-    id:'auto_'+ing.id, name:ing.name, cat:ing.cat,
-    checked:false, manual:false,
-    source:[...new Set(sources)].join(', ')
-  }));
+  const newAutoItems=Object.values(ingMap).map(({ing,sources})=>{
+    const unit=getUnit(ing);
+    return {
+      id:'auto_'+ing.id, name:ing.name, cat:ing.cat,
+      checked:false, manual:false, unit, qty:UNIT_DEFAULT_QTY[unit]||1,
+      source:[...new Set(sources)].join(', ')
+    };
+  });
 
   if(mode==='replace'){
     const manualItems=shopList.filter(i=>i.manual);
@@ -1133,6 +1476,7 @@ function _doGenerateShoppingList(mode){
   saveAll(); closeModal('modal-shopgen'); switchTab('lista');
 }
 function renderShop(){
+  renderLockUI();
   const el=document.getElementById('shop-content');
   if(!shopList.length){
     el.innerHTML=`<div class="empty"><div class="ei">🛒</div><p>Lista vacía.<br>Crea el menú y pulsa<br><strong>«Generar lista de la compra»</strong></p></div>`;
@@ -1164,18 +1508,94 @@ function renderShop(){
 }
 
 function shopItemHTML(item){
-  return `<div class="shop-item ${item.checked?'checked':''}" id="si-${item.id}">
+  const unit = getUnit(item);
+  const qty = item.qty || UNIT_DEFAULT_QTY[unit] || 1;
+  const step = UNIT_STEP[unit] || 1;
+  const qtyControl = unit==='ud'
+    ? `<span class="qty-val" id="qty-${item.id}">${formatQty(qty,unit)}</span>`
+    : `<input type="text" inputmode="decimal" class="qty-input" id="qty-${item.id}"
+         value="${formatQty(qty,unit)}" maxlength="${QTY_MAX_CHARS}"
+         onchange="updateQtyDirect('${item.id}', this.value)"
+         onkeydown="if(event.key==='Enter') this.blur()"
+         onclick="this.select()"><span class="qty-unit-label">${UNIT_LABEL[unit]}</span>`;
+  return `<div class="shop-item ${item.checked?'checked':''} ${shopLocked?'locked':''}" id="si-${item.id}">
     <button class="shop-check" onclick="toggleItem('${item.id}')">✓</button>
     <div style="flex:1">
       <div class="item-name">${item.name}</div>
       ${item.source?`<div class="item-src">${item.source}</div>`:''}
     </div>
+    <div class="qty-stepper">
+      <button class="qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
+      <div class="qty-mid">${qtyControl}</div>
+      <button class="qty-btn" onclick="changeQty('${item.id}',1)">+</button>
+    </div>
     <button class="item-del" onclick="deleteItem('${item.id}')">🗑</button>
   </div>`;
 }
+function changeQty(id, dir){
+  if(shopLocked) return;
+  const i=shopList.find(i=>i.id===id);
+  if(!i) return;
+  const unit=getUnit(i);
+  const step=UNIT_STEP[unit]||1;
+  let qty=(i.qty||UNIT_DEFAULT_QTY[unit]||1) + dir*step;
+  qty=Math.max(step, Math.round(qty/step)*step);
+  qty=Math.round(qty*100)/100;
+  if(qty===i.qty) return;
+  if(formatQty(qty,unit).length>QTY_MAX_CHARS) return; // no superar el ancho del campo
+  i.qty=qty;
+  saveAll();
+  const el=document.getElementById('qty-'+id);
+  if(el){
+    if(el.tagName==='INPUT') el.value=formatQty(qty,unit); else el.textContent=formatQty(qty,unit);
+  }
+}
+function updateQtyDirect(id, rawValue){
+  if(shopLocked) return;
+  const i=shopList.find(i=>i.id===id);
+  if(!i) return;
+  const unit=getUnit(i);
+  const step=UNIT_STEP[unit]||1;
+  let qty=parseFloat(String(rawValue).trim().slice(0,QTY_MAX_CHARS).replace(',','.'));
+  if(isNaN(qty) || qty<=0) qty=step;
+  qty=Math.round(qty*100)/100;
+  if(formatQty(qty,unit).length>QTY_MAX_CHARS){
+    // recortar a la cifra entera más cercana que sí entre
+    qty=Math.floor(qty);
+    if(formatQty(qty,unit).length>QTY_MAX_CHARS) qty=i.qty||UNIT_DEFAULT_QTY[unit]||step;
+  }
+  i.qty=qty;
+  saveAll();
+  const el=document.getElementById('qty-'+id);
+  if(el) el.value=formatQty(qty,unit);
+}
 function toggleItem(id){ const i=shopList.find(i=>i.id===id); if(i){i.checked=!i.checked; saveAll(); renderShop();} }
-function deleteItem(id){ shopList=shopList.filter(i=>i.id!==id); saveAll(); renderShop(); }
+function deleteItem(id){ if(shopLocked) return; shopList=shopList.filter(i=>i.id!==id); saveAll(); renderShop(); }
 function clearChecked(){ shopList=shopList.filter(i=>!i.checked); saveAll(); renderShop(); }
+
+function toggleShopLock(){
+  shopLocked=!shopLocked;
+  saveAll();
+  if(shopLocked) closeManualSuggestions();
+  renderShop();
+}
+
+function renderLockUI(){
+  const btn=document.getElementById('btn-lock-list');
+  const badge=document.getElementById('lock-badge');
+  const addRow=document.getElementById('add-manual-row');
+  if(!btn) return;
+  if(shopLocked){
+    btn.textContent='🔓 Desbloquear lista';
+    btn.className='btn btn-full btn-outline';
+  } else {
+    btn.textContent='🔒 Bloquear lista';
+    btn.className='btn btn-full btn-olive';
+  }
+  if(badge) badge.style.display = shopLocked ? 'inline-flex' : 'none';
+  if(addRow) addRow.classList.toggle('locked', shopLocked);
+}
+
 function renderManualSuggestions(){
   const el=document.getElementById('manual-item');
   const box=document.getElementById('manual-suggestions');
@@ -1218,13 +1638,15 @@ function renderManualSuggestions(){
 }
 
 function pickManualSuggestion(ingId){
+  if(shopLocked) return;
   const match=catalogue.find(i=>i.id===ingId);
   if(!match) return;
   const autoId='auto_'+match.id;
   if(shopList.find(i=>i.id===autoId)){
     showToast(`"${match.name}" ya está en la lista`);
   } else {
-    shopList.push({id:autoId, name:match.name, cat:match.cat, checked:false, manual:false, source:'Añadido manualmente'});
+    const unit=getUnit(match);
+    shopList.push({id:autoId, name:match.name, cat:match.cat, checked:false, manual:false, unit, qty:UNIT_DEFAULT_QTY[unit]||1, source:'Añadido manualmente'});
     saveAll(); renderShop();
   }
   closeManualSuggestions();
@@ -1251,6 +1673,7 @@ document.addEventListener('click', e=>{
 });
 
 function addManual(){
+  if(shopLocked) return;
   const el=document.getElementById('manual-item'), v=el.value.trim();
   if(!v) return;
   // Look up catalogue (accent-insensitive)
@@ -1261,9 +1684,10 @@ function addManual(){
       showToast(`"${match.name}" ya está en la lista`);
       closeManualSuggestions(); return;
     }
-    shopList.push({id:autoId, name:match.name, cat:match.cat, checked:false, manual:false, source:'Añadido manualmente'});
+    const unit=getUnit(match);
+    shopList.push({id:autoId, name:match.name, cat:match.cat, checked:false, manual:false, unit, qty:UNIT_DEFAULT_QTY[unit]||1, source:'Añadido manualmente'});
   } else {
-    shopList.push({id:'manual_'+Date.now(), name:v, cat:'otro', checked:false, manual:true, source:''});
+    shopList.push({id:'manual_'+Date.now(), name:v, cat:'otro', checked:false, manual:true, unit:'ud', qty:1, source:''});
   }
   closeManualSuggestions(); saveAll(); renderShop();
 }
@@ -1273,12 +1697,13 @@ function addManual(){
 // ═══════════════════════════════════════
 function renderFilterChips(){
   const usedTipos=[...new Set(recipes.map(r=>r.tipo||'otro'))];
-  const all=[{key:'all',label:'Todos'},...Object.entries(TIPOS)
-    .filter(([k])=>usedTipos.includes(k)).map(([k,v])=>({key:k,label:v.label}))];
+  const all=[{key:'all',label:'Todos'},...tiposCats
+    .filter(t=>usedTipos.includes(t.id)).map(t=>({key:t.id,label:t.label}))];
   document.getElementById('recipe-filters').innerHTML=all.map(({key,label})=>
     `<button class="chip ${activeRecipeFilter===key?'active':''}" onclick="setRecipeFilter('${key}')">${label}</button>`
   ).join('');
 }
+
 function setRecipeFilter(t){ activeRecipeFilter=t; renderRecipes(); }
 
 function renderRecipes(){
@@ -1295,44 +1720,61 @@ function renderRecipes(){
     el.innerHTML=`<div class="empty"><div class="ei">🔍</div><p>Sin recetas de este tipo.</p></div>`;
     return;
   }
-  el.innerHTML=filtered.map(r=>{
-    const tipo=TIPOS[r.tipo||'otro'];
-    const ingNames=(r.ingredients||[]).map(iid=>{
-      const ing=catalogue.find(c=>c.id===iid);
-      return ing ? ing.name : null;
-    }).filter(Boolean);
-    return `<div class="recipe-card" style="border-left-color:${tipo.color}">
-      <div class="recipe-header">
-        <div>
-          <div class="recipe-name">${r.name}</div>
-          <span class="tag" style="background:${tipo.bg};color:${tipo.color}">${tipo.label}</span>
+
+  // Group by tipo
+  const groups = {};
+  filtered.forEach(r=>{
+    const tid = r.tipo||'otro';
+    (groups[tid]=groups[tid]||[]).push(r);
+  });
+
+  let html='';
+  // Maintain tiposCats order
+  const orderedKeys = tiposCats.map(t=>t.id).filter(id=>groups[id]);
+  // Any stragglers not in tiposCats
+  Object.keys(groups).forEach(id=>{ if(!orderedKeys.includes(id)) orderedKeys.push(id); });
+
+  orderedKeys.forEach(tid=>{
+    const tipo = TIPOS[tid] || {label:tid, color:'#6B5B45', bg:'#F5F0EA'};
+    if(activeRecipeFilter==='all'){
+      html+=`<div class="recipe-group-title" style="color:${tipo.color}">
+        <span class="group-label">${tipo.label}</span>
+        <div class="group-actions">
+          <button class="cat-row-btn" style="font-size:11px;padding:3px 7px" onclick="openEditCatModal('tipo','${tid}')">✏️ Editar</button>
         </div>
-        <div class="recipe-actions">
-          <button class="btn-icon" style="font-size:18px;padding:6px 8px" onclick="shareRecipe('${r.id}')">📤</button>
-          <button class="btn-icon" style="font-size:18px;padding:6px 8px" onclick="openRecipeModal('${r.id}')">✏️</button>
-          <button class="btn-icon" style="font-size:18px;padding:6px 8px;color:#C5593A" onclick="deleteRecipe('${r.id}')">✕</button>
+      </div>`;
+    }
+    html+=groups[tid].map(r=>{
+      const ingNames=(r.ingredients||[]).map(iid=>{
+        const ing=catalogue.find(c=>c.id===iid);
+        return ing ? ing.name : null;
+      }).filter(Boolean);
+      return `<div class="recipe-card" style="border-left-color:${tipo.color}">
+        <div class="recipe-header">
+          <div>
+            <div class="recipe-name">${r.name}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
+              <span class="tag" style="background:${tipo.bg};color:${tipo.color}">${tipo.label}</span>
+              ${r.difficulty && DIFFICULTY_STYLES[r.difficulty] ? `<span class="tag" style="background:${DIFFICULTY_STYLES[r.difficulty].bg};color:${DIFFICULTY_STYLES[r.difficulty].color}">${DIFFICULTY_STYLES[r.difficulty].label}</span>` : ''}
+              ${r.time ? `<span class="tag" style="background:#F0EBE3;color:#6B5B45">⏱ ${r.time}</span>` : ''}
+            </div>
+          </div>
+          <div class="recipe-actions">
+            <button class="btn-icon" style="font-size:18px;padding:6px 8px" onclick="shareRecipe('${r.id}')">📤</button>
+            <button class="btn-icon" style="font-size:18px;padding:6px 8px" onclick="openRecipeModal('${r.id}')">✏️</button>
+            <button class="btn-icon" style="font-size:18px;padding:6px 8px;color:#C5593A" onclick="deleteRecipe('${r.id}')">✕</button>
+          </div>
         </div>
-      </div>
-      <div style="margin-top:6px;display:flex;gap:14px;flex-wrap:wrap">
-        ${ingNames.length ? `
-        <span class="recipe-toggle" onclick="toggleIng('ri-${r.id}',this)">
-          🧂 Ver ingredientes (${ingNames.length})
-        </span>` : ''}
-        ${r.notes ? `
-        <span class="recipe-toggle" onclick="toggleIng('rn-${r.id}',this)" data-open-label="🍳 Ocultar preparación" data-closed-label="🍳 Ver preparación">
-          🍳 Ver preparación
-        </span>` : ''}
-      </div>
-      ${ingNames.length ? `
-      <div class="recipe-ings" id="ri-${r.id}">
-        <ul>${ingNames.map(n=>`<li>${n}</li>`).join('')}</ul>
-      </div>` : ''}
-      ${r.notes ? `
-      <div class="recipe-ings" id="rn-${r.id}">
-        <p style="font-size:13px;color:var(--brown-mid);white-space:pre-line;line-height:1.6">${r.notes}</p>
-      </div>` : ''}
-    </div>`;
-  }).join('');
+        <div style="margin-top:6px;display:flex;gap:14px;flex-wrap:wrap">
+          ${ingNames.length ? `<span class="recipe-toggle" onclick="toggleIng('ri-${r.id}',this)">🧂 Ver ingredientes (${ingNames.length})</span>` : ''}
+          ${r.notes ? `<span class="recipe-toggle" onclick="toggleIng('rn-${r.id}',this)" data-open-label="🍳 Ocultar preparación" data-closed-label="🍳 Ver preparación">🍳 Ver preparación</span>` : ''}
+        </div>
+        ${ingNames.length ? `<div class="recipe-ings" id="ri-${r.id}"><ul>${ingNames.map(n=>`<li>${n}</li>`).join('')}</ul></div>` : ''}
+        ${r.notes ? `<div class="recipe-ings" id="rn-${r.id}"><p style="font-size:13px;color:var(--brown-mid);white-space:pre-line;line-height:1.6">${r.notes}</p></div>` : ''}
+      </div>`;
+    }).join('');
+  });
+  el.innerHTML=html;
 }
 
 function shareRecipe(id){
@@ -1420,18 +1862,23 @@ function openRecipeModal(id=null){
   selectedIngIds=[];
   document.getElementById('recipe-edit-id').value=id||'';
   document.getElementById('ing-search-input').value='';
+  renderRecipeSelectOptions();
   if(id){
     const r=recipes.find(r=>r.id===id);
     document.getElementById('modal-recipe-title').textContent='Editar receta';
     document.getElementById('recipe-name').value=r.name;
     document.getElementById('recipe-tipo').value=r.tipo||'otro';
     document.getElementById('recipe-notes').value=r.notes||'';
+    document.getElementById('recipe-time').value=r.time||'';
+    document.getElementById('recipe-difficulty').value=r.difficulty||'';
     selectedIngIds=[...(r.ingredients||[])];
   } else {
     document.getElementById('modal-recipe-title').textContent='Nueva receta';
     document.getElementById('recipe-name').value='';
-    document.getElementById('recipe-tipo').value='carne';
+    document.getElementById('recipe-tipo').value=tiposCats[0]?.id||'otro';
     document.getElementById('recipe-notes').value='';
+    document.getElementById('recipe-time').value='';
+    document.getElementById('recipe-difficulty').value='';
   }
   renderIngPicker(); renderSelectedIngs();
   document.getElementById('btn-save-as-new').style.display = id ? 'flex' : 'none';
@@ -1448,8 +1895,10 @@ function renderSelectedIngs(){
     const ing=catalogue.find(c=>c.id===iid);
     if(!ing) return '';
     const info=ING_CATS[ing.cat]||ING_CATS.otro;
-    return `<span class="sel-chip" style="background:${info.bg};color:${info.color}" onclick="toggleIngSelection('${iid}')">
-      ${ing.name} ×</span>`;
+    const style=isPending(ing) ? `background:${info.bg};color:${info.color};border:1px dashed ${info.color}` : `background:${info.bg};color:${info.color}`;
+    const titleParts=[isPending(ing)?'Sin categorizar':'', isPantryItem(ing)?'Básico de despensa: no sale en la lista de la compra':''].filter(Boolean);
+    return `<span class="sel-chip" style="${style}" onclick="toggleIngSelection('${iid}')" title="${titleParts.join(' · ')}">
+      ${isPending(ing)?'❓ ':''}${isPantryItem(ing)?'🏺 ':''}${ing.name} ×</span>`;
   }).join('');
 }
 
@@ -1465,19 +1914,38 @@ function renderIngPicker(){
   visible.forEach(i=>{ (byCat[i.cat]=byCat[i.cat]||[]).push(i); });
   Object.keys(byCat).forEach(cat=>{ byCat[cat].sort((a,b)=>normalize(a.name).localeCompare(normalize(b.name))); });
   let html='';
-  Object.keys(ING_CATS).forEach(cat=>{
-    if(!byCat[cat]?.length) return;
-    if(!q) html+=`<div class="ing-picker-cat">${ING_CATS[cat].label}</div>`;
-    byCat[cat].forEach(ing=>{
+  ingCats.forEach(cat=>{
+    if(!byCat[cat.id]?.length) return;
+    if(!q) html+=`<div class="ing-picker-cat">${cat.label}</div>`;
+    byCat[cat.id].forEach(ing=>{
       const sel=selectedIngIds.includes(ing.id);
       html+=`<div class="ing-option ${sel?'selected':''}" onclick="toggleIngSelection('${ing.id}')">
         <div class="ing-check">${sel?'✓':''}</div>
-        <span style="flex:1">${ing.name}</span>
+        <span style="flex:1">${isPantryItem(ing)?'🏺 ':''}${ing.name}</span>
       </div>`;
     });
   });
   if(!html) html=`<div style="padding:12px;text-align:center;color:var(--brown-mid);font-size:13px">Sin resultados</div>`;
+  if(q && !catalogue.some(i=>normalize(i.name)===q)){
+    html+=`<div class="ing-quick-add" onclick="quickAddIngredient()">➕ Añadir "${document.getElementById('ing-search-input').value.trim()}" como nuevo producto</div>`;
+  }
   el.innerHTML=html;
+}
+
+function quickAddIngredient(){
+  const name=document.getElementById('ing-search-input').value.trim();
+  if(!name) return;
+  const exists=catalogue.find(i=>normalize(i.name)===normalize(name));
+  if(exists){
+    if(!selectedIngIds.includes(exists.id)) selectedIngIds.push(exists.id);
+  } else {
+    const item={id:'c_'+Date.now(), name, cat:SIN_CAT_ID};
+    catalogue.push(item);
+    selectedIngIds.push(item.id);
+  }
+  saveAll();
+  document.getElementById('ing-search-input').value='';
+  renderIngPicker(); renderSelectedIngs();
 }
 
 function toggleIngSelection(iid){
@@ -1492,8 +1960,9 @@ function saveRecipe(asNew=false){
   if(!name){ alert('Ponle un nombre al plato'); return; }
   const tipo=document.getElementById('recipe-tipo').value;
   const notes=document.getElementById('recipe-notes').value.trim();
+  const time=document.getElementById('recipe-time').value.trim();
+  const difficulty=document.getElementById('recipe-difficulty').value;
   const editId = asNew ? null : document.getElementById('recipe-edit-id').value;
-  // Duplicate check: only for new recipes or "save as new"
   if(!editId){
     const exists=recipes.some(r=>normalize(r.name)===normalize(name));
     if(exists){ alert(`Ya existe una receta llamada "${name}".`); return; }
@@ -1507,9 +1976,9 @@ function saveRecipe(asNew=false){
 
   if(editId){
     const r=recipes.find(r=>r.id===editId);
-    if(r){ r.name=name; r.tipo=tipo; r.ingredients=sortedIngs; r.notes=notes; }
+    if(r){ r.name=name; r.tipo=tipo; r.ingredients=sortedIngs; r.notes=notes; r.time=time; r.difficulty=difficulty; }
   } else {
-    recipes.push({id:'r_'+Date.now(), name, tipo, ingredients:sortedIngs, notes});
+    recipes.push({id:'r_'+Date.now(), name, tipo, ingredients:sortedIngs, notes, time, difficulty});
   }
   saveAll(); closeModal('modal-recipe'); renderRecipes(); renderWeek();
 }
@@ -1517,8 +1986,15 @@ function saveRecipe(asNew=false){
 function deleteRecipe(id){
   recipes=recipes.filter(r=>r.id!==id);
   Object.keys(menus).forEach(k=>{
-    if(menus[k].lunch===id) delete menus[k].lunch;
-    if(menus[k].dinner===id) delete menus[k].dinner;
+    if(k.startsWith('extra_')){
+      menus[k]=menus[k].filter(rid=>rid!==id);
+    } else {
+      ['lunch','dinner'].forEach(meal=>{
+        if(!menus[k][meal]) return;
+        const arr=(Array.isArray(menus[k][meal]) ? menus[k][meal] : [menus[k][meal]]).filter(rid=>rid!==id);
+        if(arr.length) menus[k][meal]=arr; else delete menus[k][meal];
+      });
+    }
   });
   saveAll(); renderRecipes();
 }
@@ -1528,46 +2004,103 @@ function deleteRecipe(id){
 // ═══════════════════════════════════════
 function renderCatFilterChips(){
   const usedCats=[...new Set(catalogue.map(i=>i.cat))];
-  const all=[{key:'all',label:'Todos'},...Object.entries(ING_CATS)
-    .filter(([k])=>usedCats.includes(k)).map(([k,v])=>({key:k,label:v.label}))];
+  const hasPantry=catalogue.some(isPantryItem);
+  const all=[{key:'all',label:'Todos'},
+    ...(hasPantry?[{key:'pantry',label:'🏺 Despensa'}]:[]),
+    ...Object.entries(ING_CATS).filter(([k])=>usedCats.includes(k)).map(([k,v])=>({key:k,label:v.label}))];
   document.getElementById('ing-cat-filter').innerHTML=all.map(({key,label})=>
-    `<button class="chip ${activeIngCatFilter===key?'active':''}" onclick="setIngCatFilter('${key}')">${label}</button>`
+    `<button class="chip ${key===SIN_CAT_ID?'chip-warn':''} ${key==='pantry'?'chip-pantry':''} ${activeIngCatFilter===key?'active':''}" onclick="setIngCatFilter('${key}')">${label}</button>`
   ).join('');
 }
 function setIngCatFilter(c){ activeIngCatFilter=c; renderCatalogue(); }
 
 function renderCatalogue(){
+  if(activeIngCatFilter==='pantry' && !catalogue.some(isPantryItem)) activeIngCatFilter='all';
   renderCatFilterChips();
   const el=document.getElementById('ing-catalogue');
-  const filtered=activeIngCatFilter==='all' ? catalogue : catalogue.filter(i=>i.cat===activeIngCatFilter);
+  let filtered;
+  if(activeIngCatFilter==='all') filtered=catalogue;
+  else if(activeIngCatFilter==='pantry') filtered=catalogue.filter(isPantryItem);
+  else filtered=catalogue.filter(i=>i.cat===activeIngCatFilter);
   if(!filtered.length){
-    el.innerHTML=`<div class="empty"><div class="ei">🥕</div><p>Sin ingredientes.<br>Pulsa <strong>+</strong> para añadir.</p></div>`;
+    el.innerHTML=`<div class="empty"><div class="ei">🛒</div><p>Sin productos.<br>Pulsa <strong>+</strong> para añadir.</p></div>`;
     return;
   }
   const byCat={};
   filtered.forEach(i=>{ (byCat[i.cat]=byCat[i.cat]||[]).push(i); });
   Object.keys(byCat).forEach(cat=>{ byCat[cat].sort((a,b)=>normalize(a.name).localeCompare(normalize(b.name))); });
+  renderPendingBanner();
   let html='';
-  Object.keys(ING_CATS).forEach(cat=>{
-    if(!byCat[cat]?.length) return;
-    const info=ING_CATS[cat];
+  const sinCat = ingCats.find(c=>c.id===SIN_CAT_ID);
+  if(sinCat && byCat[SIN_CAT_ID]?.length){
     html+=`<div class="ing-cat-block">
-      <div class="ing-cat-title" style="color:${info.color}">${info.label}</div>
+      <div class="ing-cat-title" style="color:${sinCat.color}">${sinCat.label}</div>
       <div class="ing-grid">
-        ${byCat[cat].map(ing=>`
-          <span class="ing-tag" style="background:${info.bg};color:${info.color};border-color:${info.color}30">
-            ${ing.name}
-            <button class="del-ing" onclick="deleteIngredient('${ing.id}')">×</button>
-          </span>`).join('')}
+        ${byCat[SIN_CAT_ID].map(ing=>renderIngTag(ing,sinCat)).join('')}
+      </div>
+    </div>`;
+  }
+  ingCats.forEach(cat=>{
+    if(cat.id===SIN_CAT_ID) return;
+    if(!byCat[cat.id]?.length) return;
+    html+=`<div class="ing-cat-block">
+      <div class="ing-cat-title" style="color:${cat.color}">${cat.label}</div>
+      <div class="ing-grid">
+        ${byCat[cat.id].map(ing=>renderIngTag(ing,cat)).join('')}
+      </div>
+    </div>`;
+  });
+  // Custom cats not in ingCats
+  Object.keys(byCat).forEach(catId=>{
+    if(ingCats.find(c=>c.id===catId)) return;
+    html+=`<div class="ing-cat-block">
+      <div class="ing-cat-title">${catId}</div>
+      <div class="ing-grid">
+        ${byCat[catId].map(ing=>renderIngTag(ing,null)).join('')}
       </div>
     </div>`;
   });
   el.innerHTML=html;
 }
 
-function openIngModal(){
-  document.getElementById('ing-name').value='';
-  document.getElementById('ing-cat-select').value='verdura';
+function renderIngTag(ing,cat){
+  const style = cat ? `background:${cat.bg};color:${cat.color};border-color:${cat.color}30` : '';
+  const unit = getUnit(ing);
+  const unitHint = unit!=='ud' ? `<span style="font-size:10.5px;opacity:.65;margin-left:2px">(${UNIT_LABEL[unit]})</span>` : '';
+  const pantryHint = isPantryItem(ing) ? `<span class="pantry-mark" title="Básico de despensa">🏺</span>` : '';
+  return `<span class="ing-tag ${isPending(ing)?'pending':''}" style="${style}">
+    <span class="ing-tag-name" onclick="openIngModal('${ing.id}')">${pantryHint}${ing.name}${unitHint}</span>
+    <button class="del-ing" onclick="deleteIngredient('${ing.id}')">×</button>
+  </span>`;
+}
+
+function renderPendingBanner(){
+  const wrap=document.getElementById('pending-banner-wrap');
+  const n=catalogue.filter(isPending).length;
+  wrap.innerHTML = n
+    ? `<div class="pending-banner">⚠️ ${n} producto${n>1?'s':''} por catalogar — tócalo${n>1?'s':''} (❓) para asignarle${n>1?'s':''} categoría.</div>`
+    : '';
+}
+
+function openIngModal(editId=null){
+  document.getElementById('ing-edit-id').value=editId||'';
+  renderIngCatSelectOptions();
+  const ing = editId ? catalogue.find(i=>i.id===editId) : null;
+  if(ing){
+    document.getElementById('modal-ing-title').textContent='Editar producto';
+    document.getElementById('btn-save-ing').textContent='Guardar';
+    document.getElementById('ing-name').value=ing.name;
+    document.getElementById('ing-cat-select').value=ing.cat;
+    document.getElementById('ing-unit-select').value=getUnit(ing);
+    document.getElementById('ing-pantry-select').value = isPantryItem(ing) ? '1' : '0';
+  } else {
+    document.getElementById('modal-ing-title').textContent='Nuevo producto';
+    document.getElementById('btn-save-ing').textContent='Añadir';
+    document.getElementById('ing-name').value='';
+    document.getElementById('ing-cat-select').value = ingCats[0]?.id || 'otro';
+    document.getElementById('ing-unit-select').value = 'ud';
+    document.getElementById('ing-pantry-select').value = '0';
+  }
   document.getElementById('modal-ing').classList.add('open');
 }
 
@@ -1575,9 +2108,17 @@ function saveIngredient(){
   const name=document.getElementById('ing-name').value.trim();
   if(!name){ alert('Escribe un nombre'); return; }
   const cat=document.getElementById('ing-cat-select').value;
-  const exists=catalogue.some(i=>normalize(i.name)===normalize(name));
+  const unit=document.getElementById('ing-unit-select').value;
+  const pantry=document.getElementById('ing-pantry-select').value==='1';
+  const editId=document.getElementById('ing-edit-id').value;
+  const exists=catalogue.some(i=>normalize(i.name)===normalize(name) && i.id!==editId);
   if(exists){ alert(`"${name}" ya existe en el catálogo.`); return; }
-  catalogue.push({id:'c_'+Date.now(), name, cat});
+  if(editId){
+    const ing=catalogue.find(i=>i.id===editId);
+    if(ing){ ing.name=name; ing.cat=cat; ing.unit=unit; ing.pantry=pantry; }
+  } else {
+    catalogue.push({id:'c_'+Date.now(), name, cat, unit, pantry});
+  }
   saveAll(); closeModal('modal-ing'); renderCatalogue();
 }
 
@@ -1588,8 +2129,184 @@ function deleteIngredient(id){
 }
 
 // ═══════════════════════════════════════
-// CALENDAR PICKER
+// CATEGORY MANAGEMENT
 // ═══════════════════════════════════════
+const EMOJIS_FOOD = ['🥩','🐟','🦐','🍓','🥦','🍄','🥛','🥚','🍝','🫘','🥫','🍞','🫙','🧂',
+  '🧃','🧊','🍫','🥜','🧁','🥗','🍲','🥘','🫓','🍽','🍚','🍛','🥙','🌮','🌯','🥪','🍱',
+  '🍣','🍜','🍕','🥐','🥨','🧇','🥞','🧆','🫕','🥣','🍲','🫚','🍯','🫖','☕','🍵'];
+const EMOJIS_HOME = ['🧴','🧹','🧺','🧻','🪣','🫧','🧼','🪥','🛒','📦','🏷️','🪴','🕯️','⭐','🌟','💛','🟢','🔵','🟣','🟠'];
+const ALL_EMOJIS = [...EMOJIS_FOOD, ...EMOJIS_HOME];
+
+let catManagerType = null; // 'ing' | 'tipo'
+let deleteCatPending = null; // {type, id}
+let editCatSelectedEmoji = '⭐';
+
+function openCatManager(type){
+  catManagerType = type;
+  renderCatManagerList(type);
+  document.getElementById(type==='ing' ? 'modal-ing-cats' : 'modal-tipo-cats').classList.add('open');
+}
+
+function renderCatManagerList(type){
+  const cats = type==='ing' ? ingCats : tiposCats;
+  const listId = type==='ing' ? 'ing-cats-list' : 'tipo-cats-list';
+  const el = document.getElementById(listId);
+  el.innerHTML = cats.map((cat,idx)=>{
+    const protectedCat = type==='ing' && cat.id===SIN_CAT_ID;
+    return `
+    <div class="cat-row">
+      <div class="cat-row-label" style="${protectedCat?'color:#C0392B':''}">${cat.label}${protectedCat?' <span style="font-size:11px;font-weight:600;color:#C0392B">(fija)</span>':''}</div>
+      <div class="cat-row-btns">
+        ${idx>0 ? `<button class="cat-row-btn" onclick="moveCat('${type}','${cat.id}',-1)">↑</button>` : '<span style="width:34px"></span>'}
+        ${idx<cats.length-1 ? `<button class="cat-row-btn" onclick="moveCat('${type}','${cat.id}',1)">↓</button>` : '<span style="width:34px"></span>'}
+        <button class="cat-row-btn" onclick="openEditCatModal('${type}','${cat.id}')">✏️</button>
+        ${protectedCat ? '' : `<button class="cat-row-btn danger" onclick="requestDeleteCat('${type}','${cat.id}')">✕</button>`}
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+function moveCat(type, id, dir){
+  const arr = type==='ing' ? ingCats : tiposCats;
+  const idx = arr.findIndex(c=>c.id===id);
+  if(idx<0) return;
+  const newIdx = idx+dir;
+  if(newIdx<0||newIdx>=arr.length) return;
+  [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+  saveAll();
+  renderCatManagerList(type);
+  if(type==='ing'){ renderCatalogue(); }
+  else { renderRecipes(); }
+}
+
+function openNewCatModal(type){
+  document.getElementById('edit-cat-title').textContent = type==='ing' ? 'Nueva categoría' : 'Nuevo tipo de plato';
+  document.getElementById('edit-cat-type').value = type;
+  document.getElementById('edit-cat-id').value = '';
+  document.getElementById('edit-cat-name').value = '';
+  editCatSelectedEmoji = '⭐';
+  renderEmojiGrid();
+  document.getElementById('modal-edit-cat').classList.add('open');
+}
+
+function openEditCatModal(type, id){
+  const arr = type==='ing' ? ingCats : tiposCats;
+  const cat = arr.find(c=>c.id===id);
+  if(!cat) return;
+  document.getElementById('edit-cat-title').textContent = 'Editar categoría';
+  document.getElementById('edit-cat-type').value = type;
+  document.getElementById('edit-cat-id').value = id;
+  document.getElementById('edit-cat-name').value = cat.label.replace(/^\S+\s/,''); // strip emoji
+  editCatSelectedEmoji = cat.label.split(' ')[0];
+  renderEmojiGrid();
+  document.getElementById('modal-edit-cat').classList.add('open');
+}
+
+function renderEmojiGrid(){
+  document.getElementById('edit-cat-emoji-selected').textContent = editCatSelectedEmoji;
+  document.getElementById('emoji-grid').innerHTML = ALL_EMOJIS.map(e=>
+    `<span class="emoji-opt ${e===editCatSelectedEmoji?'selected':''}" onclick="selectEmoji('${e}')">${e}</span>`
+  ).join('');
+}
+
+function selectEmoji(e){
+  editCatSelectedEmoji = e;
+  renderEmojiGrid();
+}
+
+function saveCatEdit(){
+  const type = document.getElementById('edit-cat-type').value;
+  const id   = document.getElementById('edit-cat-id').value;
+  const name = document.getElementById('edit-cat-name').value.trim();
+  if(!name){ alert('Escribe un nombre para la categoría'); return; }
+  const label = `${editCatSelectedEmoji} ${name}`;
+  const arr = type==='ing' ? ingCats : tiposCats;
+
+  if(id){
+    // Edit existing
+    const cat = arr.find(c=>c.id===id);
+    if(cat){ cat.label = label; }
+  } else {
+    // New category
+    const newId = 'cat_'+Date.now();
+    const newCat = { id:newId, label, color:'#6B5B45', bg:'#F5F0EA' };
+    arr.push(newCat);
+  }
+  saveAll();
+  closeModal('modal-edit-cat');
+  renderCatManagerList(type);
+  if(type==='ing'){ renderCatalogue(); }
+  else { renderRecipes(); renderRecipeSelectOptions(); }
+}
+
+function requestDeleteCat(type, id){
+  if(type==='ing' && id===SIN_CAT_ID){ showToast('Esta categoría no se puede eliminar'); return; }
+  const arr = type==='ing' ? ingCats : tiposCats;
+  const cat = arr.find(c=>c.id===id);
+  if(!cat) return;
+
+  let affectedCount = 0;
+  let affectedLabel = '';
+  if(type==='ing'){
+    affectedCount = catalogue.filter(i=>i.cat===id).length;
+    affectedLabel = affectedCount===1 ? '1 producto' : `${affectedCount} productos`;
+  } else {
+    affectedCount = recipes.filter(r=>(r.tipo||'otro')===id).length;
+    affectedLabel = affectedCount===1 ? '1 receta' : `${affectedCount} recetas`;
+  }
+
+  deleteCatPending = {type, id};
+
+  const msg = affectedCount > 0
+    ? `La categoría "${cat.label}" tiene ${affectedLabel} asignados. Si la eliminas, ${type==='ing'?'esos productos pasarán a "📦 Otro"':'esas recetas pasarán a "🍽 Otro"'}. ¿Seguro que quieres eliminarla?`
+    : `¿Eliminar la categoría "${cat.label}"? Esta acción no se puede deshacer.`;
+
+  document.getElementById('delete-cat-msg').textContent = msg;
+  document.getElementById('modal-delete-cat').classList.add('open');
+}
+
+function confirmDeleteCat(){
+  if(!deleteCatPending) return;
+  const {type, id} = deleteCatPending;
+  const arr = type==='ing' ? ingCats : tiposCats;
+  const idx = arr.findIndex(c=>c.id===id);
+  if(idx>=0) arr.splice(idx,1);
+
+  // Reassign orphans to 'otro'
+  if(type==='ing'){
+    catalogue.forEach(i=>{ if(i.cat===id) i.cat='otro'; });
+  } else {
+    recipes.forEach(r=>{ if((r.tipo||'otro')===id) r.tipo='otro'; });
+  }
+
+  saveAll();
+  closeModal('modal-delete-cat');
+  renderCatManagerList(type);
+  if(type==='ing'){ renderCatalogue(); }
+  else { renderRecipes(); renderRecipeSelectOptions(); }
+  deleteCatPending = null;
+}
+
+// Update recipe tipo <select> dynamically when tipos change
+function renderRecipeSelectOptions(){
+  const sel = document.getElementById('recipe-tipo');
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = tiposCats.map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
+  if([...sel.options].some(o=>o.value===current)) sel.value=current;
+}
+
+// Update ingredient cat <select> dynamically
+function renderIngCatSelectOptions(){
+  const sel = document.getElementById('ing-cat-select');
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = ingCats.map(c=>`<option value="${c.id}">${c.label}</option>`).join('');
+  if([...sel.options].some(o=>o.value===current)) sel.value=current;
+}
+
+
 const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const DOW_ES = ['L','M','X','J','V','S','D'];
@@ -1781,6 +2498,13 @@ function importData(input){
 // ═══════════════════════════════════════
 // COMPARTIR / EXPORTAR / IMPORTAR LISTA
 // ═══════════════════════════════════════
+function qtyLabel(i){
+  const unit=getUnit(i);
+  const qty=i.qty||UNIT_DEFAULT_QTY[unit]||1;
+  if(unit==='ud') return qty>1 ? ` (x${qty})` : '';
+  return ` (${formatQty(qty,unit)} ${UNIT_LABEL[unit]})`;
+}
+
 function shareShopList(){
   if(!shopList.length){ showToast('La lista está vacía'); return; }
 
@@ -1796,12 +2520,12 @@ function shareShopList(){
   catOrder.forEach(cat=>{
     if(!byCat[cat]?.length) return;
     lines.push(ING_CATS[cat].label);
-    byCat[cat].forEach(i=>{ lines.push(`  ${i.checked?'✓':'-'} ${i.name}`); });
+    byCat[cat].forEach(i=>{ lines.push(`  ${i.checked?'✓':'-'} ${i.name}${qtyLabel(i)}`); });
     lines.push('');
   });
   if(manual.length){
     lines.push('➕ Otros');
-    manual.forEach(i=>{ lines.push(`  ${i.checked?'✓':'-'} ${i.name}`); });
+    manual.forEach(i=>{ lines.push(`  ${i.checked?'✓':'-'} ${i.name}${qtyLabel(i)}`); });
     lines.push('');
   }
   lines.push('— Compartido desde Umami 🍽');
@@ -1820,6 +2544,8 @@ function exportShopList(){
     name:i.name, cat:i.cat||'otro',
     checked:i.checked||false,
     manual:i.manual||false,
+    unit:getUnit(i),
+    qty:i.qty||UNIT_DEFAULT_QTY[getUnit(i)]||1,
     source:i.source||''
   }));
   const data={ type:'umami-lista', version:1, exportedAt:new Date().toISOString(), items };
@@ -1859,6 +2585,11 @@ function _confirmImportLista(mode){
 // ═══════════════════════════════════════
 updateEndDayLabel();
 mergeDefaultIngredients();
+ensureSinCategorizarCat();
+seedDefaultPantryItems();
+renderRecipeSelectOptions();
+renderIngCatSelectOptions();
+renderNavBadge();
 renderWeek();
 </script>
 </body>
