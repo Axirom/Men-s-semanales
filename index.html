@@ -92,6 +92,8 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 .chip.chip-warn.active { background:#F0B429; border-color:#F0B429; color:#fff; }
 .chip.chip-pantry { border-color:#7A8C5E; color:#4F6135; background:#EAF0E2; }
 .chip.chip-pantry.active { background:#7A8C5E; border-color:#7A8C5E; color:#fff; }
+.chip.chip-especial { border-color:#8E44AD; color:#6C3483; background:#F5EEF8; }
+.chip.chip-especial.active { background:#8E44AD; border-color:#8E44AD; color:#fff; }
 
 /* ── WEEK NAV ── */
 .week-config { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;
@@ -201,6 +203,16 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 .ing-tag.pending { border-style:dashed !important; }
 .ing-tag-name { cursor:pointer; }
 .pantry-mark { font-size:11px; opacity:.85; }
+.rule-list-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--sand); flex-wrap:wrap; }
+.rule-list-label { flex:1; min-width:80px; font-size:14px; font-weight:600; color:var(--brown); }
+.rule-mini-stepper { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+.rule-mini-tag { font-size:9.5px; font-weight:700; color:var(--brown-mid); text-transform:uppercase; letter-spacing:.3px; margin-right:1px; }
+.rule-mini-val { min-width:16px; text-align:center; font-size:12.5px; font-weight:700; color:var(--brown); }
+.rule-del-btn { background:none; border:none; color:var(--brown-mid); font-size:16px; cursor:pointer; padding:4px; opacity:.5; flex-shrink:0;
+  touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.rule-del-btn:hover { opacity:1; color:var(--terra); }
+.minmax-stepper { display:flex; align-items:center; gap:10px; }
+.minmax-val { min-width:90px; text-align:center; font-size:14px; font-weight:700; color:var(--brown); }
 .pending-banner { display:flex; align-items:center; gap:8px; background:#FEF9E7; border:1px solid #F4D03F;
   color:#7D6608; font-size:12.5px; padding:8px 12px; border-radius:10px; margin-bottom:12px; }
 .ing-quick-add { display:flex; align-items:center; gap:8px; padding:10px 12px; cursor:pointer;
@@ -411,6 +423,10 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
         <button class="btn btn-outline btn-sm" onclick="changeWeek(1)">Siguiente →</button>
       </div>
       <div id="days-container"></div>
+      <button class="btn btn-outline btn-full" style="margin-top:18px;justify-content:space-between" onclick="generateRandomMenu()">
+        <span>🎲 Generar menú aleatorio</span>
+        <span onclick="event.stopPropagation();openMenuRulesModal()" title="Reglas del menú aleatorio" style="font-size:17px;line-height:1;padding:8px 2px 8px 12px;margin-left:8px;border-left:1.5px solid var(--sand);touch-action:manipulation">⚙️</span>
+      </button>
       <button class="btn btn-olive btn-full" onclick="generateShoppingList()">🛒 Generar lista de la compra</button>
     </div>
 
@@ -478,6 +494,22 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
       <select id="recipe-tipo">
         <!-- populated dynamically -->
       </select>
+    </div>
+    <div class="field">
+      <label>¿Cuándo se suele comer?</label>
+      <div class="picker-tabs" id="recipe-momento-tabs" style="margin-bottom:0">
+        <button type="button" class="picker-tab" onclick="setRecipeMomento('comida',this)">☀️ Comida</button>
+        <button type="button" class="picker-tab" onclick="setRecipeMomento('cena',this)">🌙 Cena</button>
+        <button type="button" class="picker-tab active" onclick="setRecipeMomento('ambas',this)">🍽 Ambas</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>¿Especial?</label>
+      <div class="picker-tabs" id="recipe-especial-tabs" style="margin-bottom:0">
+        <button type="button" class="picker-tab active" onclick="setRecipeEspecial(false,this)">🍽 Plato normal</button>
+        <button type="button" class="picker-tab" onclick="setRecipeEspecial(true,this)">⭐️ Especial</button>
+      </div>
+      <p style="font-size:11.5px;color:var(--brown-mid);margin-top:5px">Para platos que quieres tratar como especiales — por ingredientes, tiempo o complejidad — además de su tipo habitual.</p>
     </div>
     <div class="field">
       <label>Productos seleccionados</label>
@@ -634,6 +666,68 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
   </div>
 </div>
 
+<!-- ── MODAL REGLAS DEL MENÚ ALEATORIO ── -->
+<div class="modal-overlay" id="modal-menu-rules">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🎲 Reglas del menú aleatorio</div>
+    <p style="font-size:13px;color:var(--brown-mid);line-height:1.5;margin-bottom:14px">
+      Reglas para cuántas veces quieres cada tipo de plato en la semana (comida y cena cuentan juntas).
+    </p>
+    <div id="menu-rules-list"></div>
+    <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="openNewRuleModal()">+ Nueva regla</button>
+    <div class="modal-actions" style="margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-menu-rules')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL NUEVA REGLA ── -->
+<div class="modal-overlay" id="modal-edit-menu-rule">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nueva regla</div>
+    <div class="field">
+      <label>Tipo de regla</label>
+      <select id="rule-kind-select" onchange="renderRuleKindFields()">
+        <option value="minmax">Mínimo y máximo por semana</option>
+        <option value="dias">Días concretos de la semana</option>
+        <option value="especial">Especial</option>
+        <option value="historial">No repetir recetas recientes</option>
+      </select>
+    </div>
+    <div class="field" id="rule-tipo-field">
+      <label>Tipo de receta</label>
+      <select id="rule-tipo-select"><!-- populated dynamically --></select>
+    </div>
+    <div id="rule-kind-fields"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-edit-menu-rule')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmNewRule()">Confirmar regla</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL CONFIRMAR GENERACIÓN DE MENÚ ALEATORIO ── -->
+<div class="modal-overlay" id="modal-menugen">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🎲 Ya hay comidas asignadas</div>
+    <p style="font-size:14px;color:var(--brown-mid);line-height:1.6;margin-bottom:20px">
+      Esta semana ya tiene algo planeado. ¿Qué quieres hacer?
+    </p>
+    <button class="btn btn-primary btn-full" onclick="_doGenerateRandomMenu('replace')" style="margin-bottom:10px">
+      🗑 Reemplazar toda la semana
+    </button>
+    <button class="btn btn-olive btn-full" onclick="_doGenerateRandomMenu('fill')">
+      ➕ Rellenar solo los huecos vacíos
+    </button>
+    <div class="modal-actions" style="margin-top:8px">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-menugen')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- ── MODAL IMPORTAR LISTA ── -->
 <div class="modal-overlay" id="modal-import-lista">
@@ -771,6 +865,8 @@ function getIngCatsObj(){ return Object.fromEntries(ingCats.map(c=>([c.id,c])));
 function getTiposObj(){    return Object.fromEntries(tiposCats.map(c=>([c.id,c]))); }
 function isPending(ing){ return ing && ing.cat===SIN_CAT_ID; }
 function isPantryItem(ing){ return !!(ing && ing.pantry); }
+function getMomento(r){ return (r && r.momento) || 'ambas'; }
+function isEspecial(r){ return !!(r && r.especial); }
 // Legacy aliases used throughout the code
 let ING_CATS = {};
 let TIPOS    = {};
@@ -814,6 +910,7 @@ let shopLocked  = load('ms_shop_locked', false);
 let weekStartDay= load('ms_start_day', 6);
 let ingCats     = load('ms_ing_cats', DEFAULT_ING_CATS);
 let tiposCats   = load('ms_tipos_cats', DEFAULT_TIPOS);
+let menuRules   = load('ms_menu_rules', []);
 refreshCatAliases();
 
 function saveAll(){
@@ -825,6 +922,7 @@ function saveAll(){
   save('ms_start_day', weekStartDay);
   save('ms_ing_cats', ingCats);
   save('ms_tipos_cats', tiposCats);
+  save('ms_menu_rules', menuRules);
   refreshCatAliases();
   renderNavBadge();
 }
@@ -1114,6 +1212,22 @@ function seedDefaultPantryItems(){
   if(changed) saveAll();
 }
 
+// Convierte el formato antiguo de reglas ({tipoId:{min,max}}) al nuevo formato
+// en array (una versión de desarrollo previa de v5 usaba el formato antiguo).
+function migrateMenuRules(){
+  if(!Array.isArray(menuRules)){
+    const old = menuRules || {};
+    menuRules = Object.keys(old).map(tipoId=>({
+      id:'mr_'+tipoId,
+      tipo:tipoId,
+      kind:'minmax',
+      min: old[tipoId]?.min ?? null,
+      max: old[tipoId]?.max ?? null,
+    }));
+    saveAll();
+  }
+}
+
 // ═══════════════════════════════════════
 // TABS & STATE
 // ═══════════════════════════════════════
@@ -1122,6 +1236,27 @@ let weekOffset = 0;
 let activeRecipeFilter = 'all';
 let activeIngCatFilter = 'all';
 let selectedIngIds = []; // for recipe modal
+let currentRecipeMomento = 'ambas'; // for recipe modal
+function setRecipeMomento(v, btn){
+  currentRecipeMomento = v;
+  document.querySelectorAll('#recipe-momento-tabs .picker-tab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+function setRecipeMomentoUI(v){
+  currentRecipeMomento = v;
+  const idx = v==='comida' ? 0 : v==='cena' ? 1 : 2;
+  document.querySelectorAll('#recipe-momento-tabs .picker-tab').forEach((b,i)=>b.classList.toggle('active', i===idx));
+}
+let currentRecipeEspecial = false; // for recipe modal
+function setRecipeEspecial(v, btn){
+  currentRecipeEspecial = v;
+  document.querySelectorAll('#recipe-especial-tabs .picker-tab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+function setRecipeEspecialUI(v){
+  currentRecipeEspecial = !!v;
+  document.querySelectorAll('#recipe-especial-tabs .picker-tab').forEach((b,i)=>b.classList.toggle('active', (i===1)===currentRecipeEspecial));
+}
 
 function switchTab(tab){
   currentTab = tab;
@@ -1129,7 +1264,7 @@ function switchTab(tab){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(`section-${tab}`).classList.add('active');
   document.getElementById(`tab-${tab}`).classList.add('active');
-  document.getElementById('fab').style.display = tab==='lista' ? 'none' : 'flex';
+  document.getElementById('fab').style.display = (tab==='recetario' || tab==='ingredientes') ? 'flex' : 'none';
   if(tab==='menu') renderWeek();
   if(tab==='lista') renderShop();
   if(tab==='recetario') renderRecipes();
@@ -1384,6 +1519,528 @@ function pickIngredient(iid){
   const arr = getMealIds(key,meal);
   if(!arr.includes(token)) menus[key][meal]=[...arr, token];
   saveAll(); closePicker(); renderWeek();
+}
+
+// ═══════════════════════════════════════
+// MENÚ ALEATORIO
+// ═══════════════════════════════════════
+
+function openMenuRulesModal(){
+  renderMenuRulesList();
+  openModal('modal-menu-rules');
+}
+
+function getMinMaxRuleForTipo(tipoId){
+  return menuRules.find(r=>r.tipo===tipoId && r.kind==='minmax') || null;
+}
+
+function getDiasRuleForTipo(tipoId){
+  return menuRules.find(r=>r.tipo===tipoId && r.kind==='dias') || null;
+}
+
+const DOW_ABBR_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']; // índice = d.getDay()
+
+// Devuelve los 7 días de la semana (0=domingo…6=sábado, como Date.getDay())
+// ordenados empezando por el día configurado como inicio de semana.
+function getOrderedDowList(){
+  const arr=[];
+  for(let i=0;i<7;i++) arr.push((weekStartDay+i)%7);
+  return arr;
+}
+
+function renderMenuRulesList(){
+  const el=document.getElementById('menu-rules-list');
+  if(!menuRules.length){
+    el.innerHTML=`<div class="empty" style="padding:26px 12px"><div class="ei">🎲</div><p>Aún no has creado ninguna regla.<br>Pulsa <strong>+ Nueva regla</strong> para empezar.</p></div>`;
+    return;
+  }
+  el.innerHTML = menuRules.map(rule=>{
+    const tipo = TIPOS[rule.tipo] || {label:rule.tipo, color:'#6B5B45'};
+    if(rule.kind==='minmax'){
+      return `<div class="rule-list-row">
+        <div class="rule-list-label" style="color:${tipo.color}">${tipo.label}</div>
+        <div class="rule-mini-stepper">
+          <span class="rule-mini-tag">mín</span>
+          <button class="qty-btn" onclick="changeRuleMinMax('${rule.id}','min',-1)">−</button>
+          <span class="rule-mini-val" title="${rule.min===null?'Sin límite':''}">${rule.min===null?'–':rule.min}</span>
+          <button class="qty-btn" onclick="changeRuleMinMax('${rule.id}','min',1)">+</button>
+        </div>
+        <div class="rule-mini-stepper">
+          <span class="rule-mini-tag">máx</span>
+          <button class="qty-btn" onclick="changeRuleMinMax('${rule.id}','max',-1)">−</button>
+          <span class="rule-mini-val" title="${rule.max===null?'Sin límite':''}">${rule.max===null?'–':rule.max}</span>
+          <button class="qty-btn" onclick="changeRuleMinMax('${rule.id}','max',1)">+</button>
+        </div>
+        <button class="rule-del-btn" onclick="deleteMenuRule('${rule.id}')">🗑</button>
+      </div>`;
+    }
+    if(rule.kind==='dias'){
+      const order=getOrderedDowList();
+      return `<div class="rule-list-row">
+        <div class="rule-list-label" style="color:${tipo.color}">${tipo.label}</div>
+        <button class="rule-del-btn" onclick="deleteMenuRule('${rule.id}')">🗑</button>
+        <div class="chips" style="flex:1 1 100%;margin:4px 0 0;gap:4px">
+          ${order.map(dow=>{
+            const active=(rule.days||[]).includes(dow);
+            return `<button type="button" class="chip ${active?'active':''}" style="padding:4px 9px;font-size:11.5px" onclick="toggleRuleDay('${rule.id}',${dow})">${DOW_ABBR_ES[dow]}</button>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+    if(rule.kind==='especial'){
+      const opts=[{key:'excluir',label:'🚫 Excluir'},{key:'finde',label:'⭐️ Solo finde'}];
+      return `<div class="rule-list-row">
+        <div class="rule-list-label" style="color:#8E44AD">⭐️ Especial</div>
+        <button class="rule-del-btn" onclick="deleteMenuRule('${rule.id}')">🗑</button>
+        <div class="chips" style="flex:1 1 100%;margin:4px 0 0;gap:4px">
+          ${opts.map(o=>`<button type="button" class="chip ${rule.mode===o.key?'active':''}" style="padding:4px 9px;font-size:11.5px" onclick="setEspecialRuleMode('${rule.id}','${o.key}')">${o.label}</button>`).join('')}
+        </div>
+      </div>`;
+    }
+    if(rule.kind==='historial'){
+      return `<div class="rule-list-row">
+        <div class="rule-list-label" style="color:#6B5B45">🔁 No repetir recientes</div>
+        <div class="rule-mini-stepper">
+          <span class="rule-mini-tag">semanas</span>
+          <button class="qty-btn" onclick="changeHistorialSemanas('${rule.id}',-1)">−</button>
+          <span class="rule-mini-val">${rule.semanas||1}</span>
+          <button class="qty-btn" onclick="changeHistorialSemanas('${rule.id}',1)">+</button>
+        </div>
+        <button class="rule-del-btn" onclick="deleteMenuRule('${rule.id}')">🗑</button>
+      </div>`;
+    }
+    return '';
+  }).join('');
+}
+
+function changeHistorialSemanas(ruleId, delta){
+  const rule=menuRules.find(r=>r.id===ruleId);
+  if(!rule) return;
+  rule.semanas=Math.max(1,(rule.semanas||1)+delta);
+  saveAll();
+  renderMenuRulesList();
+}
+
+function setEspecialRuleMode(ruleId, mode){
+  const rule=menuRules.find(r=>r.id===ruleId);
+  if(!rule) return;
+  rule.mode=mode;
+  saveAll();
+  renderMenuRulesList();
+}
+
+function toggleRuleDay(ruleId, dow){
+  const rule=menuRules.find(r=>r.id===ruleId);
+  if(!rule) return;
+  if(!Array.isArray(rule.days)) rule.days=[];
+  const idx=rule.days.indexOf(dow);
+  if(idx>=0) rule.days.splice(idx,1); else rule.days.push(dow);
+  saveAll();
+  renderMenuRulesList();
+}
+
+// Para "mínimo", 0 y "sin límite" significan lo mismo (al menos 0 veces = sin restricción),
+// así que el stepper de mínimo se salta el 0: sin límite → 1 → 2…
+// Para "máximo", 0 sí tiene un significado propio y distinto ("nunca este tipo"),
+// así que el stepper de máximo sí lo incluye: sin límite → 0 → 1 → 2…
+function stepMinMaxValue(field, val, delta){
+  if(field==='min'){
+    if(delta>0) return (val===null) ? 1 : val+1;
+    if(val===null) return null;
+    return (val===1) ? null : val-1;
+  }
+  if(delta>0) return (val===null) ? 0 : val+1;
+  if(val===null) return null;
+  return (val===0) ? null : val-1;
+}
+
+function changeRuleMinMax(ruleId, field, delta){
+  const rule=menuRules.find(r=>r.id===ruleId);
+  if(!rule) return;
+  const val=stepMinMaxValue(field, rule[field], delta);
+  if(field==='min' && rule.max!=null && val!=null && val>rule.max){ showToast('El mínimo no puede superar al máximo'); return; }
+  if(field==='max' && rule.min!=null && val!=null && val<rule.min){ showToast('El máximo no puede ser menor que el mínimo'); return; }
+  rule[field]=val;
+  saveAll();
+  renderMenuRulesList();
+}
+
+function deleteMenuRule(ruleId){
+  menuRules=menuRules.filter(r=>r.id!==ruleId);
+  saveAll();
+  renderMenuRulesList();
+}
+
+let newRuleMin=null, newRuleMax=null;
+let newRuleDays=[];
+let newRuleEspecialMode='excluir';
+
+function openNewRuleModal(){
+  renderRuleTipoSelectOptions();
+  document.getElementById('rule-kind-select').value='minmax';
+  newRuleMin=null; newRuleMax=null;
+  newRuleDays=[];
+  newRuleEspecialMode='excluir';
+  newRuleSemanas=1;
+  renderRuleKindFields();
+  openModal('modal-edit-menu-rule');
+}
+
+function renderRuleTipoSelectOptions(){
+  const sel=document.getElementById('rule-tipo-select');
+  sel.innerHTML = tiposCats.map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
+}
+
+function renderRuleKindFields(){
+  const kind=document.getElementById('rule-kind-select').value;
+  const el=document.getElementById('rule-kind-fields');
+  const tipoField=document.getElementById('rule-tipo-field');
+  if(tipoField) tipoField.style.display = (kind==='especial' || kind==='historial') ? 'none' : '';
+  if(kind==='minmax'){
+    el.innerHTML = `
+      <div class="field">
+        <label>Mínimo por semana</label>
+        <div class="minmax-stepper">
+          <button type="button" class="qty-btn" onclick="stepRuleValue('min',-1)">−</button>
+          <span class="minmax-val" id="new-rule-min-val">—</span>
+          <button type="button" class="qty-btn" onclick="stepRuleValue('min',1)">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Máximo por semana</label>
+        <div class="minmax-stepper">
+          <button type="button" class="qty-btn" onclick="stepRuleValue('max',-1)">−</button>
+          <span class="minmax-val" id="new-rule-max-val">—</span>
+          <button type="button" class="qty-btn" onclick="stepRuleValue('max',1)">+</button>
+        </div>
+      </div>`;
+    renderNewRuleMinMaxDisplay();
+  } else if(kind==='dias'){
+    el.innerHTML = `
+      <div class="field">
+        <label>¿Qué días de la semana?</label>
+        <div class="chips" id="new-rule-days-chips" style="margin-bottom:0"></div>
+      </div>`;
+    renderNewRuleDaysChips();
+  } else if(kind==='especial'){
+    el.innerHTML = `
+      <div class="field">
+        <label>¿Qué hacemos con las recetas "⭐️ especiales"?</label>
+        <div class="chips" id="new-rule-especial-chips" style="margin-bottom:0"></div>
+        <p style="font-size:11.5px;color:var(--brown-mid);margin-top:5px">Solo puede haber una regla de este tipo. Bórrala si quieres que vuelvan a aparecer sin restricción.</p>
+      </div>`;
+    renderNewRuleEspecialChips();
+  } else if(kind==='historial'){
+    el.innerHTML = `
+      <div class="field">
+        <label>¿Cuántas semanas hacia atrás?</label>
+        <div class="minmax-stepper">
+          <button type="button" class="qty-btn" onclick="stepNewRuleSemanas(-1)">−</button>
+          <span class="minmax-val" id="new-rule-semanas-val">—</span>
+          <button type="button" class="qty-btn" onclick="stepNewRuleSemanas(1)">+</button>
+        </div>
+        <p style="font-size:11.5px;color:var(--brown-mid);margin-top:5px">El generador evitará repetir una receta que ya se usara en comida o cena de esas semanas (no cuentan las recetas adicionales). Si no hay alternativa, la repite antes que dejar un hueco vacío.</p>
+      </div>`;
+    renderNewRuleSemanasDisplay();
+  }
+}
+
+let newRuleSemanas=1;
+
+function stepNewRuleSemanas(delta){
+  newRuleSemanas=Math.max(1, newRuleSemanas+delta);
+  renderNewRuleSemanasDisplay();
+}
+
+function renderNewRuleSemanasDisplay(){
+  const el=document.getElementById('new-rule-semanas-val');
+  if(el) el.textContent = newRuleSemanas;
+}
+
+function renderNewRuleEspecialChips(){
+  const el=document.getElementById('new-rule-especial-chips');
+  if(!el) return;
+  const opts=[{key:'excluir',label:'🚫 Excluir del generador'},{key:'finde',label:'⭐️ Solo fines de semana'}];
+  el.innerHTML = opts.map(o=>
+    `<button type="button" class="chip ${newRuleEspecialMode===o.key?'active':''}" onclick="setNewRuleEspecialMode('${o.key}')">${o.label}</button>`
+  ).join('');
+}
+
+function setNewRuleEspecialMode(mode){
+  newRuleEspecialMode=mode;
+  renderNewRuleEspecialChips();
+}
+
+function renderNewRuleDaysChips(){
+  const el=document.getElementById('new-rule-days-chips');
+  if(!el) return;
+  const order=getOrderedDowList();
+  el.innerHTML = order.map(dow=>{
+    const active=newRuleDays.includes(dow);
+    return `<button type="button" class="chip ${active?'active':''}" onclick="toggleNewRuleDay(${dow})">${DOW_ABBR_ES[dow]}</button>`;
+  }).join('');
+}
+
+function toggleNewRuleDay(dow){
+  const idx=newRuleDays.indexOf(dow);
+  if(idx>=0) newRuleDays.splice(idx,1); else newRuleDays.push(dow);
+  renderNewRuleDaysChips();
+}
+
+function stepRuleValue(field, delta){
+  const current = field==='min' ? newRuleMin : newRuleMax;
+  const val = stepMinMaxValue(field, current, delta);
+  if(field==='min') newRuleMin=val; else newRuleMax=val;
+  renderNewRuleMinMaxDisplay();
+}
+
+function renderNewRuleMinMaxDisplay(){
+  const minEl=document.getElementById('new-rule-min-val');
+  const maxEl=document.getElementById('new-rule-max-val');
+  if(minEl) minEl.textContent = newRuleMin===null ? '— (sin límite)' : newRuleMin;
+  if(maxEl) maxEl.textContent = newRuleMax===null ? '— (sin límite)' : newRuleMax;
+}
+
+function confirmNewRule(){
+  const tipo=document.getElementById('rule-tipo-select').value;
+  const kind=document.getElementById('rule-kind-select').value;
+  if(kind==='minmax'){
+    if(newRuleMin===null && newRuleMax===null){ alert('Define al menos un mínimo o un máximo.'); return; }
+    if(newRuleMin!=null && newRuleMax!=null && newRuleMax<newRuleMin){ alert('El máximo no puede ser menor que el mínimo.'); return; }
+    const dup=menuRules.find(r=>r.tipo===tipo && r.kind==='minmax');
+    if(dup){ alert('Ya existe una regla de mínimo/máximo para este tipo. Edítala directamente desde la lista.'); return; }
+    menuRules.push({ id:'mr_'+Date.now(), tipo, kind:'minmax', min:newRuleMin, max:newRuleMax });
+  } else if(kind==='dias'){
+    if(!newRuleDays.length){ alert('Selecciona al menos un día.'); return; }
+    const dup=menuRules.find(r=>r.tipo===tipo && r.kind==='dias');
+    if(dup){ alert('Ya existe una regla de días para este tipo. Edítala directamente desde la lista.'); return; }
+    menuRules.push({ id:'mr_'+Date.now(), tipo, kind:'dias', days:[...newRuleDays] });
+  } else if(kind==='especial'){
+    const dup=menuRules.find(r=>r.kind==='especial');
+    if(dup){ alert('Ya existe una regla de especiales. Bórrala primero si quieres cambiarla, o edítala desde la lista.'); return; }
+    menuRules.push({ id:'mr_'+Date.now(), kind:'especial', mode:newRuleEspecialMode });
+  } else if(kind==='historial'){
+    const dup=menuRules.find(r=>r.kind==='historial');
+    if(dup){ alert('Ya existe una regla de no repetir recientes. Bórrala primero si quieres cambiarla, o edítala desde la lista.'); return; }
+    menuRules.push({ id:'mr_'+Date.now(), kind:'historial', semanas:newRuleSemanas });
+  }
+  saveAll();
+  closeModal('modal-edit-menu-rule');
+  renderMenuRulesList();
+  showToast('Regla añadida ✓');
+}
+
+function shuffleArr(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function generateRandomMenu(){
+  if(!recipes.length){ showToast('Todavía no tienes recetas'); return; }
+  const start=getWeekStart(weekOffset);
+  let hasContent=false;
+  for(let i=0;i<7 && !hasContent;i++){
+    const d=new Date(start); d.setDate(d.getDate()+i);
+    const key=dayKey(d);
+    if(getMealIds(key,'lunch').length || getMealIds(key,'dinner').length) hasContent=true;
+  }
+  if(hasContent){ openModal('modal-menugen'); }
+  else { _doGenerateRandomMenu('fill'); }
+}
+
+function _doGenerateRandomMenu(mode){
+  closeModal('modal-menugen');
+  const start=getWeekStart(weekOffset);
+  const dayKeys=[];
+  const dowToKey={}; // 0=domingo…6=sábado (Date.getDay()) → clave del día en esta semana
+  for(let i=0;i<7;i++){ const d=new Date(start); d.setDate(d.getDate()+i); const k=dayKey(d); dayKeys.push(k); dowToKey[d.getDay()]=k; }
+
+  let slots=[];
+  dayKeys.forEach(key=>{
+    ['lunch','dinner'].forEach(meal=>{
+      const existing=getMealIds(key,meal);
+      if(mode==='replace' || existing.length===0) slots.push({key, meal});
+    });
+  });
+
+  if(!slots.length){ showToast('No hay huecos vacíos que rellenar'); return; }
+
+  // ── REGLA DE "ESPECIAL" ──
+  // 'excluir': esas recetas quedan fuera del generador por completo (incluida la repesca de mínimos).
+  // 'finde'  : solo pueden colocarse en sábado o domingo (calendario), nunca entre semana.
+  const especialRule = menuRules.find(r=>r.kind==='especial') || null;
+  function isWeekendKey(key){
+    const [y,m,d]=key.split('-').map(Number);
+    const dow=new Date(y, m-1, d).getDay();
+    return dow===0 || dow===6;
+  }
+  function applyEspecialFinde(pool, key){
+    if(especialRule && especialRule.mode==='finde' && !isWeekendKey(key)){
+      return pool.filter(r=>!isEspecial(r));
+    }
+    return pool;
+  }
+  const baseRecipes = (especialRule && especialRule.mode==='excluir') ? recipes.filter(r=>!isEspecial(r)) : recipes;
+
+  const poolComida = baseRecipes.filter(r=>getMomento(r)!=='cena');
+  const poolCena   = baseRecipes.filter(r=>getMomento(r)!=='comida');
+
+  if(!poolComida.length && !poolCena.length){ showToast('No tienes recetas disponibles para comida ni cena'); return; }
+
+  const tipoCounts={};
+  tiposCats.forEach(t=>{ tipoCounts[t.id]=0; });
+  const usedRecipeIds=new Set();
+
+  if(mode==='fill'){
+    dayKeys.forEach(key=>{
+      ['lunch','dinner'].forEach(meal=>{
+        getMealIds(key,meal).forEach(token=>{
+          if(!token.startsWith('ing:')){
+            const r=recipes.find(rr=>rr.id===token);
+            if(r){ const t=r.tipo||'otro'; tipoCounts[t]=(tipoCounts[t]||0)+1; usedRecipeIds.add(token); }
+          }
+        });
+      });
+    });
+  }
+
+  // ── REGLA "NO REPETIR RECETAS RECIENTES" ──
+  // Preferencia blanda: se apuntan como "usadas" en usedRecipeIds, el mismo
+  // mecanismo que ya evita repetir un plato dentro de la propia semana. Si al
+  // filtrar no queda ninguna alternativa, el código existente cae de vuelta al
+  // pool completo (no se deja un hueco vacío por esta regla). No cuentan para
+  // los mínimos/máximos de tipo, solo para evitar repetición.
+  const historialRule = menuRules.find(r=>r.kind==='historial') || null;
+  if(historialRule && historialRule.semanas>0){
+    for(let w=1; w<=historialRule.semanas; w++){
+      const pastStart=getWeekStart(weekOffset - w);
+      for(let j=0;j<7;j++){
+        const d=new Date(pastStart); d.setDate(d.getDate()+j);
+        const k=dayKey(d);
+        ['lunch','dinner'].forEach(meal=>{
+          getMealIds(k,meal).forEach(token=>{
+            if(!token.startsWith('ing:')) usedRecipeIds.add(token);
+          });
+        });
+      }
+    }
+  }
+
+  // ── REGLAS DE "DÍAS": se reservan antes del relleno aleatorio ──
+  // Cada regla garantiza el tipo UNA vez ese día (comida o cena, nunca las dos),
+  // salvo que la propia receta ya esté limitada a una sola de las dos.
+  const diasFailed=[];
+  const slotPlanned=(key,meal)=>slots.some(s=>s.key===key && s.meal===meal);
+  const slotFree=(key,meal)=>mode==='replace' ? true : getMealIds(key,meal).length===0;
+
+  menuRules.filter(r=>r.kind==='dias' && (r.days||[]).length).forEach(rule=>{
+    const tipoId=rule.tipo;
+    const candComida = poolComida.filter(r=>(r.tipo||'otro')===tipoId);
+    const candCena   = poolCena.filter(r=>(r.tipo||'otro')===tipoId);
+    rule.days.forEach(dow=>{
+      const key=dowToKey[dow];
+      if(!key) return;
+      const availableMeals=[];
+      const candComidaDay = applyEspecialFinde(candComida, key);
+      const candCenaDay   = applyEspecialFinde(candCena, key);
+      if(slotPlanned(key,'lunch') && slotFree(key,'lunch') && candComidaDay.length) availableMeals.push('lunch');
+      if(slotPlanned(key,'dinner') && slotFree(key,'dinner') && candCenaDay.length) availableMeals.push('dinner');
+      if(!availableMeals.length){ diasFailed.push(TIPOS[tipoId]?.label || tipoId); return; }
+
+      const meal = availableMeals[Math.floor(Math.random()*availableMeals.length)];
+      const pool = meal==='lunch' ? candComidaDay : candCenaDay;
+      let choices = pool.filter(r=>!usedRecipeIds.has(r.id));
+      if(!choices.length) choices = pool;
+      const pick = choices[Math.floor(Math.random()*choices.length)];
+
+      if(!menus[key]) menus[key]={};
+      menus[key][meal]=[pick.id];
+      usedRecipeIds.add(pick.id);
+      tipoCounts[tipoId]=(tipoCounts[tipoId]||0)+1;
+      slots = slots.filter(s=>!(s.key===key && s.meal===meal));
+    });
+  });
+
+  if(!slots.length){
+    saveAll(); renderWeek();
+    showToast(diasFailed.length ? 'Menú generado, revisa las reglas ⚠️' : 'Menú generado ✓');
+    return;
+  }
+
+  slots = shuffleArr(slots);
+
+  function tipoAtMax(tipoId){
+    const rule=getMinMaxRuleForTipo(tipoId);
+    if(!rule || rule.max==null) return false;
+    return (tipoCounts[tipoId]||0) >= rule.max;
+  }
+
+  let skippedSlots=0;
+
+  slots.forEach(({key, meal})=>{
+    const pool = applyEspecialFinde(meal==='lunch' ? poolComida : poolCena, key);
+    if(!pool.length){ skippedSlots++; return; }
+
+    let candidates = pool.filter(r=>!usedRecipeIds.has(r.id) && !tipoAtMax(r.tipo||'otro'));
+    if(!candidates.length) candidates = pool.filter(r=>!tipoAtMax(r.tipo||'otro'));
+    if(!candidates.length) candidates = pool;
+    if(!candidates.length){ skippedSlots++; return; }
+
+    const pick = candidates[Math.floor(Math.random()*candidates.length)];
+    usedRecipeIds.add(pick.id);
+    tipoCounts[pick.tipo||'otro']=(tipoCounts[pick.tipo||'otro']||0)+1;
+
+    if(!menus[key]) menus[key]={};
+    menus[key][meal]=[pick.id];
+  });
+
+  // Repair pass: intentar cubrir mínimos sin romper otros mínimos
+  const repairFailed=[];
+  menuRules.filter(r=>r.kind==='minmax' && r.min!=null && r.min>0).forEach(rule=>{
+    const tipoId=rule.tipo;
+    const candidatesComida = poolComida.filter(r=>(r.tipo||'otro')===tipoId);
+    const candidatesCena   = poolCena.filter(r=>(r.tipo||'otro')===tipoId);
+    let guard=0;
+    while((tipoCounts[tipoId]||0) < rule.min && guard<100){
+      guard++;
+      let swapped=false;
+      for(const {key, meal} of slots){
+        const pool = applyEspecialFinde(meal==='lunch' ? candidatesComida : candidatesCena, key);
+        if(!pool.length) continue;
+        const currentIds=getMealIds(key,meal);
+        if(!currentIds.length) continue;
+        const currentRecipe=recipes.find(rr=>rr.id===currentIds[0]);
+        if(!currentRecipe) continue;
+        const currentTipo=currentRecipe.tipo||'otro';
+        if(currentTipo===tipoId) continue;
+        const currentMin=getMinMaxRuleForTipo(currentTipo)?.min ?? 0;
+        if((tipoCounts[currentTipo]||0) <= currentMin) continue;
+
+        const pick=pool[Math.floor(Math.random()*pool.length)];
+        menus[key][meal]=[pick.id];
+        tipoCounts[currentTipo]--;
+        tipoCounts[tipoId]=(tipoCounts[tipoId]||0)+1;
+        usedRecipeIds.add(pick.id);
+        swapped=true;
+        break;
+      }
+      if(!swapped) break;
+    }
+    if((tipoCounts[tipoId]||0) < rule.min) repairFailed.push(TIPOS[tipoId]?.label || tipoId);
+  });
+
+  saveAll();
+  renderWeek();
+
+  if(repairFailed.length || skippedSlots>0 || diasFailed.length){
+    showToast('Menú generado, revisa las reglas ⚠️');
+  } else {
+    showToast('Menú generado ✓');
+  }
 }
 
 // ═══════════════════════════════════════
@@ -1697,10 +2354,12 @@ function addManual(){
 // ═══════════════════════════════════════
 function renderFilterChips(){
   const usedTipos=[...new Set(recipes.map(r=>r.tipo||'otro'))];
-  const all=[{key:'all',label:'Todos'},...tiposCats
-    .filter(t=>usedTipos.includes(t.id)).map(t=>({key:t.id,label:t.label}))];
+  const hasEspecial=recipes.some(isEspecial);
+  const all=[{key:'all',label:'Todos'},
+    ...(hasEspecial?[{key:'especial',label:'⭐️ Especial'}]:[]),
+    ...tiposCats.filter(t=>usedTipos.includes(t.id)).map(t=>({key:t.id,label:t.label}))];
   document.getElementById('recipe-filters').innerHTML=all.map(({key,label})=>
-    `<button class="chip ${activeRecipeFilter===key?'active':''}" onclick="setRecipeFilter('${key}')">${label}</button>`
+    `<button class="chip ${key==='especial'?'chip-especial':''} ${activeRecipeFilter===key?'active':''}" onclick="setRecipeFilter('${key}')">${label}</button>`
   ).join('');
 }
 
@@ -1710,7 +2369,9 @@ function renderRecipes(){
   renderFilterChips();
   const el=document.getElementById('recipes-list');
   const q=normalize((document.getElementById('recipe-search')?.value||'').trim());
-  let filtered=activeRecipeFilter==='all' ? recipes : recipes.filter(r=>(r.tipo||'otro')===activeRecipeFilter);
+  let filtered = activeRecipeFilter==='all' ? recipes
+    : activeRecipeFilter==='especial' ? recipes.filter(isEspecial)
+    : recipes.filter(r=>(r.tipo||'otro')===activeRecipeFilter);
   if(q) filtered=filtered.filter(r=>normalize(r.name).includes(q));
   if(!recipes.length){
     el.innerHTML=`<div class="empty"><div class="ei">📖</div><p>Sin recetas.<br>Pulsa <strong>+</strong> para añadir la primera.</p></div>`;
@@ -1736,7 +2397,7 @@ function renderRecipes(){
 
   orderedKeys.forEach(tid=>{
     const tipo = TIPOS[tid] || {label:tid, color:'#6B5B45', bg:'#F5F0EA'};
-    if(activeRecipeFilter==='all'){
+    if(activeRecipeFilter==='all' || activeRecipeFilter==='especial'){
       html+=`<div class="recipe-group-title" style="color:${tipo.color}">
         <span class="group-label">${tipo.label}</span>
         <div class="group-actions">
@@ -1755,6 +2416,9 @@ function renderRecipes(){
             <div class="recipe-name">${r.name}</div>
             <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
               <span class="tag" style="background:${tipo.bg};color:${tipo.color}">${tipo.label}</span>
+              ${isEspecial(r) ? `<span class="tag" style="background:#F5EEF8;color:#8E44AD">⭐️ Especial</span>` : ''}
+              ${getMomento(r)==='comida' ? `<span class="tag" style="background:#FEF3D6;color:#B7860B">☀️ Comida</span>` : ''}
+              ${getMomento(r)==='cena' ? `<span class="tag" style="background:#E3E8F0;color:#4A5A7A">🌙 Cena</span>` : ''}
               ${r.difficulty && DIFFICULTY_STYLES[r.difficulty] ? `<span class="tag" style="background:${DIFFICULTY_STYLES[r.difficulty].bg};color:${DIFFICULTY_STYLES[r.difficulty].color}">${DIFFICULTY_STYLES[r.difficulty].label}</span>` : ''}
               ${r.time ? `<span class="tag" style="background:#F0EBE3;color:#6B5B45">⏱ ${r.time}</span>` : ''}
             </div>
@@ -1872,6 +2536,8 @@ function openRecipeModal(id=null){
     document.getElementById('recipe-time').value=r.time||'';
     document.getElementById('recipe-difficulty').value=r.difficulty||'';
     selectedIngIds=[...(r.ingredients||[])];
+    setRecipeMomentoUI(r.momento||'ambas');
+    setRecipeEspecialUI(!!r.especial);
   } else {
     document.getElementById('modal-recipe-title').textContent='Nueva receta';
     document.getElementById('recipe-name').value='';
@@ -1879,6 +2545,8 @@ function openRecipeModal(id=null){
     document.getElementById('recipe-notes').value='';
     document.getElementById('recipe-time').value='';
     document.getElementById('recipe-difficulty').value='';
+    setRecipeMomentoUI('ambas');
+    setRecipeEspecialUI(false);
   }
   renderIngPicker(); renderSelectedIngs();
   document.getElementById('btn-save-as-new').style.display = id ? 'flex' : 'none';
@@ -1976,9 +2644,9 @@ function saveRecipe(asNew=false){
 
   if(editId){
     const r=recipes.find(r=>r.id===editId);
-    if(r){ r.name=name; r.tipo=tipo; r.ingredients=sortedIngs; r.notes=notes; r.time=time; r.difficulty=difficulty; }
+    if(r){ r.name=name; r.tipo=tipo; r.ingredients=sortedIngs; r.notes=notes; r.time=time; r.difficulty=difficulty; r.momento=currentRecipeMomento; r.especial=currentRecipeEspecial; }
   } else {
-    recipes.push({id:'r_'+Date.now(), name, tipo, ingredients:sortedIngs, notes, time, difficulty});
+    recipes.push({id:'r_'+Date.now(), name, tipo, ingredients:sortedIngs, notes, time, difficulty, momento:currentRecipeMomento, especial:currentRecipeEspecial});
   }
   saveAll(); closeModal('modal-recipe'); renderRecipes(); renderWeek();
 }
@@ -2278,6 +2946,7 @@ function confirmDeleteCat(){
     catalogue.forEach(i=>{ if(i.cat===id) i.cat='otro'; });
   } else {
     recipes.forEach(r=>{ if((r.tipo||'otro')===id) r.tipo='otro'; });
+    if(menuRules.length) menuRules = menuRules.filter(r=>r.tipo!==id);
   }
 
   saveAll();
@@ -2441,6 +3110,7 @@ function exportData(){
     menus,
     shopList,
     weekStartDay,
+    menuRules,
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -2479,6 +3149,8 @@ function importData(input){
       menus        = data.menus        || {};
       shopList     = data.shopList     || [];
       weekStartDay = data.weekStartDay ?? 6;
+      menuRules    = data.menuRules    || [];
+      migrateMenuRules();
       saveAll();
       status.innerHTML = `<span style="color:#1E8449">✅ Importado correctamente — ${recipes.length} recetas, ${catalogue.length} ingredientes.</span>`;
       setTimeout(()=>{
@@ -2587,9 +3259,11 @@ updateEndDayLabel();
 mergeDefaultIngredients();
 ensureSinCategorizarCat();
 seedDefaultPantryItems();
+migrateMenuRules();
 renderRecipeSelectOptions();
 renderIngCatSelectOptions();
 renderNavBadge();
+document.getElementById('fab').style.display='none'; // arranca en Menú, donde el FAB no tiene función
 renderWeek();
 </script>
 </body>
