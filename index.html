@@ -70,7 +70,7 @@ html, body { height: 100%; background: #FAF7F2 !important; color: #2C2416 !impor
 /* ── INPUTS ── */
 input[type=text], textarea, select {
   width:100%; border:1.5px solid var(--sand); border-radius:var(--rs);
-  padding:10px 12px; font-family:'Karla',sans-serif; font-size:14px;
+  padding:10px 12px; font-family:'Karla',sans-serif; font-size:16px;
   color:var(--brown); background:var(--cream); outline:none; transition:border-color .2s; appearance:none;
 }
 input[type=text]:focus, textarea:focus, select:focus { border-color:var(--terra); background:var(--white); }
@@ -94,6 +94,8 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 .chip.chip-pantry.active { background:#7A8C5E; border-color:#7A8C5E; color:#fff; }
 .chip.chip-especial { border-color:#8E44AD; color:#6C3483; background:#F5EEF8; }
 .chip.chip-especial.active { background:#8E44AD; border-color:#8E44AD; color:#fff; }
+.chip.chip-acomp { border-color:#1E8449; color:#145A32; background:#EAFAF1; }
+.chip.chip-acomp.active { background:#1E8449; border-color:#1E8449; color:#fff; }
 
 /* ── WEEK NAV ── */
 .week-config { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;
@@ -145,11 +147,11 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
   display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
   touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .qty-btn:active { background:var(--cream); border-color:var(--terra); color:var(--terra); }
-.qty-mid { width:64px; min-width:64px; display:flex; align-items:center; justify-content:center; gap:3px; }
+.qty-mid { width:88px; min-width:88px; display:flex; align-items:center; justify-content:center; gap:4px; }
 .qty-val { text-align:center; font-size:13px; font-weight:700; color:var(--brown); }
-.qty-mid .qty-input { width:46px; min-width:46px; height:25px; text-align:center; font-size:11px; font-weight:700;
+.qty-mid .qty-input { width:64px; min-width:64px; height:30px; text-align:center; font-size:16px; font-weight:700;
   color:var(--brown); border:1px solid var(--sand); border-radius:6px; background:var(--cream);
-  padding:0; margin:0; line-height:25px; letter-spacing:-0.3px; font-variant-numeric:tabular-nums;
+  padding:0; margin:0; line-height:30px; letter-spacing:-0.3px; font-variant-numeric:tabular-nums;
   -webkit-appearance:none; appearance:none; -moz-appearance:textfield; }
 .qty-mid .qty-input::-webkit-outer-spin-button, .qty-mid .qty-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 .qty-mid .qty-input:focus { border-color:var(--terra); background:var(--white); outline:none; }
@@ -512,6 +514,15 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
       <p style="font-size:11.5px;color:var(--brown-mid);margin-top:5px">Para platos que quieres tratar como especiales — por ingredientes, tiempo o complejidad — además de su tipo habitual.</p>
     </div>
     <div class="field">
+      <label>Rol en el menú</label>
+      <div class="picker-tabs" id="recipe-rol-tabs" style="margin-bottom:0">
+        <button type="button" class="picker-tab active" onclick="setRecipeRol('unico',this)">🍽 Único</button>
+        <button type="button" class="picker-tab" onclick="setRecipeRol('principal',this)">🍖 Principal</button>
+        <button type="button" class="picker-tab" onclick="setRecipeRol('acompanamiento',this)">🥗 Acompañamiento</button>
+      </div>
+      <p style="font-size:11.5px;color:var(--brown-mid);margin-top:5px">"Principal" hace que el generador le añada automáticamente un acompañamiento. "Acompañamiento" nunca se genera solo — solo aparece junto a un principal. "Único" (por defecto) funciona como hasta ahora.</p>
+    </div>
+    <div class="field">
       <label>Productos seleccionados</label>
       <div class="selected-ings" id="selected-ings-display"></div>
       <div class="ing-search">
@@ -724,6 +735,21 @@ select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
     </button>
     <div class="modal-actions" style="margin-top:8px">
       <button class="btn btn-outline btn-full" onclick="closeModal('modal-menugen')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL AVISO: RECETAS REPETIDAS SIN ALTERNATIVA ── -->
+<div class="modal-overlay" id="modal-historial-conflicts">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔁 Repetidas sin alternativa</div>
+    <p style="font-size:13px;color:var(--brown-mid);line-height:1.5;margin-bottom:14px">
+      Estas recetas no tenían ninguna otra opción de su tipo disponible, así que se han repetido de una semana reciente pese a la regla de "no repetir". Puedes dejarlas o vaciar el hueco.
+    </p>
+    <div id="historial-conflicts-list"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-full" onclick="closeModal('modal-historial-conflicts')">Dejar como está</button>
     </div>
   </div>
 </div>
@@ -1258,6 +1284,20 @@ function setRecipeEspecialUI(v){
   document.querySelectorAll('#recipe-especial-tabs .picker-tab').forEach((b,i)=>b.classList.toggle('active', (i===1)===currentRecipeEspecial));
 }
 
+const ROL_IDX = {unico:0, principal:1, acompanamiento:2};
+let currentRecipeRol = 'unico'; // for recipe modal
+function setRecipeRol(v, btn){
+  currentRecipeRol = v;
+  document.querySelectorAll('#recipe-rol-tabs .picker-tab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+function setRecipeRolUI(v){
+  currentRecipeRol = v || 'unico';
+  const idx = ROL_IDX[currentRecipeRol] ?? 0;
+  document.querySelectorAll('#recipe-rol-tabs .picker-tab').forEach((b,i)=>b.classList.toggle('active', i===idx));
+}
+function getRol(r){ return (r && r.rol) || 'unico'; }
+
 function switchTab(tab){
   currentTab = tab;
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -1671,6 +1711,41 @@ function deleteMenuRule(ruleId){
   renderMenuRulesList();
 }
 
+let lastHistorialConflicts = []; // huecos del último menú generado que repitieron por falta de alternativa
+
+function keyToDayLabel(key){
+  const [y,m,d]=key.split('-').map(Number);
+  const dt=new Date(y, m-1, d);
+  return `${ALL_DAYS[dt.getDay()]} ${fmtDate(dt)}`;
+}
+
+function renderHistorialConflictsList(){
+  const el=document.getElementById('historial-conflicts-list');
+  if(!el) return;
+  el.innerHTML = lastHistorialConflicts.map((c,idx)=>`
+    <div class="rule-list-row">
+      <div class="rule-list-label" style="flex:1 1 100%">
+        <div>${keyToDayLabel(c.key)} · ${c.meal==='lunch'?'☀️ Comida':'🌙 Cena'}</div>
+        <div style="font-weight:400;color:var(--brown-mid);font-size:13px;margin-top:2px">${c.recipeName}</div>
+      </div>
+      <button class="btn btn-sm btn-outline" onclick="clearHistorialConflict(${idx})">🗑 Vaciar hueco</button>
+    </div>
+  `).join('');
+}
+
+function clearHistorialConflict(idx){
+  const c=lastHistorialConflicts[idx];
+  if(!c) return;
+  const arr=getMealIds(c.key,c.meal).filter(id=>id!==c.recipeId);
+  if(!menus[c.key]) menus[c.key]={};
+  if(arr.length) menus[c.key][c.meal]=arr; else delete menus[c.key][c.meal];
+  saveAll();
+  renderWeek();
+  lastHistorialConflicts.splice(idx,1);
+  renderHistorialConflictsList();
+  if(!lastHistorialConflicts.length) closeModal('modal-historial-conflicts');
+}
+
 let newRuleMin=null, newRuleMax=null;
 let newRuleDays=[];
 let newRuleEspecialMode='excluir';
@@ -1886,14 +1961,41 @@ function _doGenerateRandomMenu(mode){
   }
   const baseRecipes = (especialRule && especialRule.mode==='excluir') ? recipes.filter(r=>!isEspecial(r)) : recipes;
 
-  const poolComida = baseRecipes.filter(r=>getMomento(r)!=='cena');
-  const poolCena   = baseRecipes.filter(r=>getMomento(r)!=='comida');
+  const poolComida = baseRecipes.filter(r=>getMomento(r)!=='cena' && getRol(r)!=='acompanamiento');
+  const poolCena   = baseRecipes.filter(r=>getMomento(r)!=='comida' && getRol(r)!=='acompanamiento');
+  // Solo elegibles como SEGUNDO plato de un hueco, nunca como plato único/principal.
+  const sidePoolComida = baseRecipes.filter(r=>getMomento(r)!=='cena' && getRol(r)==='acompanamiento');
+  const sidePoolCena   = baseRecipes.filter(r=>getMomento(r)!=='comida' && getRol(r)==='acompanamiento');
 
   if(!poolComida.length && !poolCena.length){ showToast('No tienes recetas disponibles para comida ni cena'); return; }
 
   const tipoCounts={};
   tiposCats.forEach(t=>{ tipoCounts[t.id]=0; });
   const usedRecipeIds=new Set();
+
+  // ── EMPAREJAMIENTO "PRINCIPAL" + "ACOMPAÑAMIENTO" ──
+  // Si la receta elegida para un hueco es de rol "Principal", se le intenta
+  // sumar un acompañamiento del mismo momento (comida/cena). Si no hay ninguno
+  // disponible, el principal se queda solo — no se fuerza ni se avisa. Los
+  // "Acompañamiento" nunca entran en poolComida/poolCena, así que jamás
+  // pueden acabar siendo el único plato de un hueco.
+  function assignSlot(key, meal, mainPick){
+    const ids=[mainPick.id];
+    if(getRol(mainPick)==='principal'){
+      const sidePool = applyEspecialFinde(meal==='lunch' ? sidePoolComida : sidePoolCena, key);
+      if(sidePool.length){
+        let choices = sidePool.filter(r=>!usedRecipeIds.has(r.id));
+        if(!choices.length) choices = sidePool;
+        const side = choices[Math.floor(Math.random()*choices.length)];
+        ids.push(side.id);
+        usedRecipeIds.add(side.id);
+        tipoCounts[side.tipo||'otro']=(tipoCounts[side.tipo||'otro']||0)+1;
+        noteIfHistorialRepeat(key, meal, side);
+      }
+    }
+    if(!menus[key]) menus[key]={};
+    menus[key][meal]=ids;
+  }
 
   if(mode==='fill'){
     dayKeys.forEach(key=>{
@@ -1915,6 +2017,8 @@ function _doGenerateRandomMenu(mode){
   // pool completo (no se deja un hueco vacío por esta regla). No cuentan para
   // los mínimos/máximos de tipo, solo para evitar repetición.
   const historialRule = menuRules.find(r=>r.kind==='historial') || null;
+  const historialIds = new Set(); // recetas marcadas como "usadas recientemente" por esta regla en concreto
+  const historialConflicts = []; // huecos donde no hubo más remedio que repetir una de estas
   if(historialRule && historialRule.semanas>0){
     for(let w=1; w<=historialRule.semanas; w++){
       const pastStart=getWeekStart(weekOffset - w);
@@ -1923,11 +2027,16 @@ function _doGenerateRandomMenu(mode){
         const k=dayKey(d);
         ['lunch','dinner'].forEach(meal=>{
           getMealIds(k,meal).forEach(token=>{
-            if(!token.startsWith('ing:')) usedRecipeIds.add(token);
+            if(!token.startsWith('ing:')){ usedRecipeIds.add(token); historialIds.add(token); }
           });
         });
       }
     }
+  }
+  // Si el elegido definitivo está en historialIds, es que no había alternativa
+  // sin repetir y se ha usado igualmente — se apunta para poder revisarlo luego.
+  function noteIfHistorialRepeat(key, meal, pick){
+    if(historialIds.has(pick.id)) historialConflicts.push({key, meal, recipeId:pick.id, recipeName:pick.name});
   }
 
   // ── REGLAS DE "DÍAS": se reservan antes del relleno aleatorio ──
@@ -1958,7 +2067,8 @@ function _doGenerateRandomMenu(mode){
       const pick = choices[Math.floor(Math.random()*choices.length)];
 
       if(!menus[key]) menus[key]={};
-      menus[key][meal]=[pick.id];
+      assignSlot(key, meal, pick);
+      noteIfHistorialRepeat(key, meal, pick);
       usedRecipeIds.add(pick.id);
       tipoCounts[tipoId]=(tipoCounts[tipoId]||0)+1;
       slots = slots.filter(s=>!(s.key===key && s.meal===meal));
@@ -1968,6 +2078,11 @@ function _doGenerateRandomMenu(mode){
   if(!slots.length){
     saveAll(); renderWeek();
     showToast(diasFailed.length ? 'Menú generado, revisa las reglas ⚠️' : 'Menú generado ✓');
+    if(historialConflicts.length){
+      lastHistorialConflicts = historialConflicts;
+      renderHistorialConflictsList();
+      openModal('modal-historial-conflicts');
+    }
     return;
   }
 
@@ -1993,9 +2108,9 @@ function _doGenerateRandomMenu(mode){
     const pick = candidates[Math.floor(Math.random()*candidates.length)];
     usedRecipeIds.add(pick.id);
     tipoCounts[pick.tipo||'otro']=(tipoCounts[pick.tipo||'otro']||0)+1;
+    noteIfHistorialRepeat(key, meal, pick);
 
-    if(!menus[key]) menus[key]={};
-    menus[key][meal]=[pick.id];
+    assignSlot(key, meal, pick);
   });
 
   // Repair pass: intentar cubrir mínimos sin romper otros mínimos
@@ -2021,8 +2136,14 @@ function _doGenerateRandomMenu(mode){
         if((tipoCounts[currentTipo]||0) <= currentMin) continue;
 
         const pick=pool[Math.floor(Math.random()*pool.length)];
-        menus[key][meal]=[pick.id];
-        tipoCounts[currentTipo]--;
+        // Antes de sobrescribir el hueco, descontamos TODO lo que hubiera en él
+        // (el principal y, si lo tenía, su acompañamiento emparejado).
+        currentIds.forEach(id=>{
+          const rr=recipes.find(x=>x.id===id);
+          if(rr){ const t=rr.tipo||'otro'; tipoCounts[t]=Math.max(0,(tipoCounts[t]||0)-1); }
+        });
+        assignSlot(key, meal, pick);
+        noteIfHistorialRepeat(key, meal, pick);
         tipoCounts[tipoId]=(tipoCounts[tipoId]||0)+1;
         usedRecipeIds.add(pick.id);
         swapped=true;
@@ -2040,6 +2161,12 @@ function _doGenerateRandomMenu(mode){
     showToast('Menú generado, revisa las reglas ⚠️');
   } else {
     showToast('Menú generado ✓');
+  }
+
+  if(historialConflicts.length){
+    lastHistorialConflicts = historialConflicts;
+    renderHistorialConflictsList();
+    openModal('modal-historial-conflicts');
   }
 }
 
@@ -2355,11 +2482,13 @@ function addManual(){
 function renderFilterChips(){
   const usedTipos=[...new Set(recipes.map(r=>r.tipo||'otro'))];
   const hasEspecial=recipes.some(isEspecial);
+  const hasAcomp=recipes.some(r=>getRol(r)==='acompanamiento');
   const all=[{key:'all',label:'Todos'},
     ...(hasEspecial?[{key:'especial',label:'⭐️ Especial'}]:[]),
+    ...(hasAcomp?[{key:'acompanamiento',label:'🥗 Acompañamiento'}]:[]),
     ...tiposCats.filter(t=>usedTipos.includes(t.id)).map(t=>({key:t.id,label:t.label}))];
   document.getElementById('recipe-filters').innerHTML=all.map(({key,label})=>
-    `<button class="chip ${key==='especial'?'chip-especial':''} ${activeRecipeFilter===key?'active':''}" onclick="setRecipeFilter('${key}')">${label}</button>`
+    `<button class="chip ${key==='especial'?'chip-especial':''} ${key==='acompanamiento'?'chip-acomp':''} ${activeRecipeFilter===key?'active':''}" onclick="setRecipeFilter('${key}')">${label}</button>`
   ).join('');
 }
 
@@ -2371,6 +2500,7 @@ function renderRecipes(){
   const q=normalize((document.getElementById('recipe-search')?.value||'').trim());
   let filtered = activeRecipeFilter==='all' ? recipes
     : activeRecipeFilter==='especial' ? recipes.filter(isEspecial)
+    : activeRecipeFilter==='acompanamiento' ? recipes.filter(r=>getRol(r)==='acompanamiento')
     : recipes.filter(r=>(r.tipo||'otro')===activeRecipeFilter);
   if(q) filtered=filtered.filter(r=>normalize(r.name).includes(q));
   if(!recipes.length){
@@ -2397,7 +2527,7 @@ function renderRecipes(){
 
   orderedKeys.forEach(tid=>{
     const tipo = TIPOS[tid] || {label:tid, color:'#6B5B45', bg:'#F5F0EA'};
-    if(activeRecipeFilter==='all' || activeRecipeFilter==='especial'){
+    if(activeRecipeFilter==='all' || activeRecipeFilter==='especial' || activeRecipeFilter==='acompanamiento'){
       html+=`<div class="recipe-group-title" style="color:${tipo.color}">
         <span class="group-label">${tipo.label}</span>
         <div class="group-actions">
@@ -2417,6 +2547,8 @@ function renderRecipes(){
             <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">
               <span class="tag" style="background:${tipo.bg};color:${tipo.color}">${tipo.label}</span>
               ${isEspecial(r) ? `<span class="tag" style="background:#F5EEF8;color:#8E44AD">⭐️ Especial</span>` : ''}
+              ${getRol(r)==='principal' ? `<span class="tag" style="background:#FDEBD0;color:#A04000">🍖 Principal</span>` : ''}
+              ${getRol(r)==='acompanamiento' ? `<span class="tag" style="background:#EAFAF1;color:#1E8449">🥗 Acompañamiento</span>` : ''}
               ${getMomento(r)==='comida' ? `<span class="tag" style="background:#FEF3D6;color:#B7860B">☀️ Comida</span>` : ''}
               ${getMomento(r)==='cena' ? `<span class="tag" style="background:#E3E8F0;color:#4A5A7A">🌙 Cena</span>` : ''}
               ${r.difficulty && DIFFICULTY_STYLES[r.difficulty] ? `<span class="tag" style="background:${DIFFICULTY_STYLES[r.difficulty].bg};color:${DIFFICULTY_STYLES[r.difficulty].color}">${DIFFICULTY_STYLES[r.difficulty].label}</span>` : ''}
@@ -2538,6 +2670,7 @@ function openRecipeModal(id=null){
     selectedIngIds=[...(r.ingredients||[])];
     setRecipeMomentoUI(r.momento||'ambas');
     setRecipeEspecialUI(!!r.especial);
+    setRecipeRolUI(r.rol||'unico');
   } else {
     document.getElementById('modal-recipe-title').textContent='Nueva receta';
     document.getElementById('recipe-name').value='';
@@ -2547,6 +2680,7 @@ function openRecipeModal(id=null){
     document.getElementById('recipe-difficulty').value='';
     setRecipeMomentoUI('ambas');
     setRecipeEspecialUI(false);
+    setRecipeRolUI('unico');
   }
   renderIngPicker(); renderSelectedIngs();
   document.getElementById('btn-save-as-new').style.display = id ? 'flex' : 'none';
@@ -2644,9 +2778,9 @@ function saveRecipe(asNew=false){
 
   if(editId){
     const r=recipes.find(r=>r.id===editId);
-    if(r){ r.name=name; r.tipo=tipo; r.ingredients=sortedIngs; r.notes=notes; r.time=time; r.difficulty=difficulty; r.momento=currentRecipeMomento; r.especial=currentRecipeEspecial; }
+    if(r){ r.name=name; r.tipo=tipo; r.ingredients=sortedIngs; r.notes=notes; r.time=time; r.difficulty=difficulty; r.momento=currentRecipeMomento; r.especial=currentRecipeEspecial; r.rol=currentRecipeRol; }
   } else {
-    recipes.push({id:'r_'+Date.now(), name, tipo, ingredients:sortedIngs, notes, time, difficulty, momento:currentRecipeMomento, especial:currentRecipeEspecial});
+    recipes.push({id:'r_'+Date.now(), name, tipo, ingredients:sortedIngs, notes, time, difficulty, momento:currentRecipeMomento, especial:currentRecipeEspecial, rol:currentRecipeRol});
   }
   saveAll(); closeModal('modal-recipe'); renderRecipes(); renderWeek();
 }
